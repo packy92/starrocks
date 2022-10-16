@@ -7,15 +7,11 @@ import com.starrocks.sql.optimizer.ExpressionContext;
 import com.starrocks.sql.optimizer.GroupExpression;
 import com.starrocks.sql.optimizer.statistics.Statistics;
 import com.starrocks.sql.optimizer.statistics.StatisticsCalculator;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * DeriveStatsTask derives any stats needed for costing a GroupExpression.
  */
 public class DeriveStatsTask extends OptimizerTask {
-    private static final Logger LOG = LogManager.getLogger(OptimizerTask.class);
-
     private final GroupExpression groupExpression;
 
     public DeriveStatsTask(TaskContext context, GroupExpression expression) {
@@ -49,11 +45,14 @@ public class DeriveStatsTask extends OptimizerTask {
         // choose best statistics
         if (currentStatistics == null ||
                 (expressionContext.getStatistics().getOutputRowCount() < currentStatistics.getOutputRowCount())) {
-            if (currentStatistics != null) {
-                LOG.info(groupExpression.toPrettyString("", ""));
-                LOG.info("new counts {}, old counts {}");
-            }
             groupExpression.getGroup().setStatistics(expressionContext.getStatistics());
+            System.out.println("===");
+            System.out.println(">>> group id: " + groupExpression.getGroup().getId());
+            System.out.println(">>> groupExpression: " + groupExpression);
+            System.out.println(groupExpression.toPrettyString("", ""));
+            System.out.println("new counts: " + expressionContext.getStatistics().getOutputRowCount());
+            System.out.println("old counts: " + (currentStatistics == null ? 0 : currentStatistics.getOutputRowCount()));
+            System.out.println("===\n\n");
         }
 
         groupExpression.setStatsDerived();
