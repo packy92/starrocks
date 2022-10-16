@@ -190,7 +190,7 @@ public class CostModel {
             Statistics statistics = context.getStatistics();
             LOG.info("=== visit distribution start ===");
             LOG.info(">>> group id: " + context.getGroupExpression().getGroup().getId());
-            LOG.info(">>> columnsSize: " + outputColumns.getColumnIds());
+            LOG.info(">>> columnsSize: " + outputColumns.toString());
             int totalSize = 0;
             for (Map.Entry<ColumnRefOperator, ColumnStatistic> entry : statistics.getColumnStatistics().entrySet()) {
                 if (outputColumns.contains(entry.getKey().getId())) {
