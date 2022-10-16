@@ -798,7 +798,8 @@ public class StatisticsCalculator extends OperatorVisitor<Void, ExpressionContex
         }
 
         LOG.info("=== estimate join statistics start ===");
-        LOG.info(">>> group id: " + context.getGroupExpression().getGroup().getId());
+        LOG.info(">>> group id: " + (context.getGroupExpression() == null ?
+                null : context.getGroupExpression().getGroup().getId()));
         LOG.info(">>> hasUnknownColumnStatistics: " + hasUnknownColumnStatistics);
         LOG.info(">>> innerRowCount: " + innerRowCount);
 
