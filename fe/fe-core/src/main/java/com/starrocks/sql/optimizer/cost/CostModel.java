@@ -34,10 +34,14 @@ import com.starrocks.sql.optimizer.operator.physical.PhysicalWindowOperator;
 import com.starrocks.sql.optimizer.operator.scalar.BinaryPredicateOperator;
 import com.starrocks.sql.optimizer.statistics.Statistics;
 import com.starrocks.statistic.StatsConstants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
 public class CostModel {
+    private static final Logger LOG = LogManager.getLogger(CostModel.class);
+
     public static double calculateCost(GroupExpression expression) {
         ExpressionContext expressionContext = new ExpressionContext(expression);
         return calculateCost(expressionContext);
@@ -181,6 +185,8 @@ public class CostModel {
             ColumnRefSet outputColumns = context.getChildOutputColumns(0);
 
             Statistics statistics = context.getStatistics();
+            LOG.info(">>> group id:" + context.getGroupExpression().getGroup().getId());
+            LOG.info(">>> output rows: " + statistics.getOutputRowCount());
             Preconditions.checkNotNull(statistics);
 
             CostEstimate result;
