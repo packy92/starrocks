@@ -75,7 +75,7 @@ public class ExpressionContext {
         return groupExpression.arity();
     }
 
-    public GroupExpression getGroupExpression() {return groupExpression;}
+    public GroupExpression getGroupExpression() {return groupExpression; }
 
     public LogicalProperty getRootProperty() {
         return rootProperty;
