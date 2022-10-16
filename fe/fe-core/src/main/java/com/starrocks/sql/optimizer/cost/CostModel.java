@@ -32,12 +32,15 @@ import com.starrocks.sql.optimizer.operator.physical.PhysicalProjectOperator;
 import com.starrocks.sql.optimizer.operator.physical.PhysicalTopNOperator;
 import com.starrocks.sql.optimizer.operator.physical.PhysicalWindowOperator;
 import com.starrocks.sql.optimizer.operator.scalar.BinaryPredicateOperator;
+import com.starrocks.sql.optimizer.operator.scalar.ColumnRefOperator;
+import com.starrocks.sql.optimizer.statistics.ColumnStatistic;
 import com.starrocks.sql.optimizer.statistics.Statistics;
 import com.starrocks.statistic.StatsConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
+import java.util.Map;
 
 public class CostModel {
     private static final Logger LOG = LogManager.getLogger(CostModel.class);
@@ -187,8 +190,15 @@ public class CostModel {
             Statistics statistics = context.getStatistics();
             LOG.info("=== visit distribution start ===");
             LOG.info(">>> group id: " + context.getGroupExpression().getGroup().getId());
+            LOG.info(">>> columnsSize: " + outputColumns.toString());
+            int totalSize = 0;
+            for (Map.Entry<ColumnRefOperator, ColumnStatistic> entry : statistics.getColumnStatistics().entrySet()) {
+                if (outputColumns.contains(entry.getKey().getId())) {
+                    totalSize += entry.getValue().getAverageRowSize();
+                }
+            }
+            LOG.info(">>> totalSize: " + totalSize);
             LOG.info(">>> output rows: " + statistics.getOutputRowCount());
-
 
             Preconditions.checkNotNull(statistics);
 
@@ -204,9 +214,12 @@ public class CostModel {
                     break;
                 case BROADCAST:
                     int parallelExecInstanceNum = Math.max(1, getParallelExecInstanceNum(context));
+                    LOG.info(">>> parallelExecInstanceNum: " + parallelExecInstanceNum
+                            + ", LeftMostScanTabletsNum: " + context.getRootProperty().getLeftMostScanTabletsNum());
                     // beNum is the number of right table should broadcast, now use alive backends
                     int aliveBackendNumber = ctx.getAliveBackendNumber();
                     int beNum = Math.max(1, aliveBackendNumber);
+                    LOG.info(">>> beNum: " + beNum);
                     result = CostEstimate.of(statistics.getOutputSize(outputColumns) * aliveBackendNumber,
                             statistics.getOutputSize(outputColumns) * beNum * parallelExecInstanceNum,
                             Math.max(statistics.getOutputSize(outputColumns) * beNum * parallelExecInstanceNum, 1));
