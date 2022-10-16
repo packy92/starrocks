@@ -4,7 +4,10 @@ package com.starrocks.sql.optimizer.task;
 
 import com.starrocks.sql.optimizer.ExpressionContext;
 import com.starrocks.sql.optimizer.GroupExpression;
+import com.starrocks.sql.optimizer.statistics.Statistics;
 import com.starrocks.sql.optimizer.statistics.StatisticsCalculator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * DeriveStatsTask derives any stats needed for costing a GroupExpression. This will
@@ -13,6 +16,8 @@ import com.starrocks.sql.optimizer.statistics.StatisticsCalculator;
  * This implementation refer to ORCA paper.
  */
 public class DeriveStatsTask extends OptimizerTask implements Cloneable {
+
+    private static final Logger LOG = LogManager.getLogger(DeriveStatsTask.class);
     private final GroupExpression groupExpression;
 
     public DeriveStatsTask(TaskContext context, GroupExpression expression) {
@@ -74,8 +79,16 @@ public class DeriveStatsTask extends OptimizerTask implements Cloneable {
         StatisticsCalculator statisticsCalculator = new StatisticsCalculator(expressionContext,
                 context.getOptimizerContext().getColumnRefFactory(), context.getOptimizerContext());
         statisticsCalculator.estimatorStats();
+        Statistics currentStatistics = groupExpression.getGroup().getStatistics();
         groupExpression.getGroup().setStatistics(expressionContext.getStatistics());
-
+        groupExpression.getGroup().setStatistics(expressionContext.getStatistics());
+        LOG.info("===");
+        LOG.info(">>> group id: " + groupExpression.getGroup().getId());
+        LOG.info(">>> groupExpression: " + groupExpression);
+        LOG.info(groupExpression.toPrettyString("", ""));
+        LOG.info("new counts: " + expressionContext.getStatistics().getOutputRowCount());
+        LOG.info("old counts: " + (currentStatistics == null ? 0 : currentStatistics.getOutputRowCount()));
+        LOG.info("===\n\n");
         groupExpression.setStatsDerived();
     }
 }
