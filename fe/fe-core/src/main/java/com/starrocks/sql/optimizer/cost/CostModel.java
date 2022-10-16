@@ -185,8 +185,11 @@ public class CostModel {
             ColumnRefSet outputColumns = context.getChildOutputColumns(0);
 
             Statistics statistics = context.getStatistics();
+            LOG.info("=== visit distribution start ===");
             LOG.info(">>> group id: " + context.getGroupExpression().getGroup().getId());
             LOG.info(">>> output rows: " + statistics.getOutputRowCount());
+
+
             Preconditions.checkNotNull(statistics);
 
             CostEstimate result;
@@ -223,6 +226,9 @@ public class CostModel {
                             "not support " + distributionSpec.getType() + "distribution type",
                             ErrorType.UNSUPPORTED);
             }
+            LOG.info(">>> distribution type: " + distributionSpec.getType());
+            LOG.info(">>> result: " + getRealCost(result));
+            LOG.info("=== visit distribution end ===");
             return result;
         }
 
