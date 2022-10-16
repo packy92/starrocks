@@ -797,6 +797,11 @@ public class StatisticsCalculator extends OperatorVisitor<Void, ExpressionContex
             }
         }
 
+        LOG.info("=== estimate join statistics start ===");
+        LOG.info(">>> group id: " + context.getGroupExpression().getGroup().getId());
+        LOG.info(">>> hasUnknownColumnStatistics: " + hasUnknownColumnStatistics);
+        LOG.info(">>> innerRowCount: " + innerRowCount);
+
         Statistics innerJoinStats;
         if (innerRowCount == -1) {
             innerJoinStats = estimateInnerJoinStatistics(crossJoinStats, eqOnPredicates);
@@ -804,6 +809,10 @@ public class StatisticsCalculator extends OperatorVisitor<Void, ExpressionContex
         } else {
             innerJoinStats = Statistics.buildFrom(crossJoinStats).setOutputRowCount(innerRowCount).build();
         }
+        LOG.info(">>> join predicate estimate info: "
+                + ConnectContext.get().getSessionVariable().isUseCorrelatedJoinEstimate());
+        LOG.info(">>> innerRowCount: " + innerRowCount);
+        LOG.info("=== estimate join statistics end ===");
 
         Statistics.Builder joinStatsBuilder;
         switch (joinType) {
