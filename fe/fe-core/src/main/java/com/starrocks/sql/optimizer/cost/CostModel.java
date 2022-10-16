@@ -188,7 +188,7 @@ public class CostModel {
             LOG.info("=== visit distribution start ===");
             LOG.info(">>> group id: " + context.getGroupExpression().getGroup().getId());
             LOG.info(">>> output rows: " + statistics.getOutputRowCount());
-            LOG.info("=== visit distribution end ===");
+
 
             Preconditions.checkNotNull(statistics);
 
@@ -226,6 +226,9 @@ public class CostModel {
                             "not support " + distributionSpec.getType() + "distribution type",
                             ErrorType.UNSUPPORTED);
             }
+            LOG.info(">>> distribution type: " + distributionSpec.getType());
+            LOG.info(">>> result: " + getRealCost(result));
+            LOG.info("=== visit distribution end ===");
             return result;
         }
 
