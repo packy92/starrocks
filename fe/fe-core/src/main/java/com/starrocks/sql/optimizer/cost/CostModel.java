@@ -185,7 +185,7 @@ public class CostModel {
             ColumnRefSet outputColumns = context.getChildOutputColumns(0);
 
             Statistics statistics = context.getStatistics();
-            LOG.info(">>> group id:" + context.getGroupExpression().getGroup().getId());
+            LOG.info(">>> group id: " + context.getGroupExpression().getGroup().getId());
             LOG.info(">>> output rows: " + statistics.getOutputRowCount());
             Preconditions.checkNotNull(statistics);
 
