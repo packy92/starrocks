@@ -243,10 +243,6 @@ public class CostModel {
         @Override
         public CostEstimate visitPhysicalHashJoin(PhysicalHashJoinOperator join, ExpressionContext context) {
             Preconditions.checkState(context.arity() == 2);
-            // For broadcast join, use leftExecInstanceNum as right child real destinations num.
-            int leftExecInstanceNum = context.getChildLeftMostScanTabletsNum(0);
-            context.getChildLogicalProperty(1).setLeftMostScanTabletsNum(leftExecInstanceNum);
-
             Statistics statistics = context.getStatistics();
             Preconditions.checkNotNull(statistics);
 
@@ -260,9 +256,10 @@ public class CostModel {
 
             Preconditions.checkState(!(join.getJoinType().isCrossJoin() || eqOnPredicates.isEmpty()),
                     "should be handled by nestloopjoin");
+            HashJoinCpuCostModel cpuCostModel = new HashJoinCpuCostModel(leftStatistics, rightStatistics,
+                    eqOnPredicates);
 
-            return CostEstimate.of(leftStatistics.getOutputSize(context.getChildOutputColumns(0))
-                            + rightStatistics.getOutputSize(context.getChildOutputColumns(1)),
+            return CostEstimate.of(cpuCostModel.getCpuCost(),
                     rightStatistics.getOutputSize(context.getChildOutputColumns(1)), 0);
         }
 
