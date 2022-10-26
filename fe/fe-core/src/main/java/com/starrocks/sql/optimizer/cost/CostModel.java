@@ -35,10 +35,14 @@ import com.starrocks.sql.optimizer.operator.physical.PhysicalWindowOperator;
 import com.starrocks.sql.optimizer.operator.scalar.BinaryPredicateOperator;
 import com.starrocks.sql.optimizer.statistics.Statistics;
 import com.starrocks.statistic.StatsConstants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
 public class CostModel {
+
+    private static final Logger LOG = LogManager.getLogger(CostModel.class);
     public static double calculateCost(GroupExpression expression) {
         ExpressionContext expressionContext = new ExpressionContext(expression);
         return calculateCost(expressionContext);
@@ -47,6 +51,7 @@ public class CostModel {
     private static double calculateCost(ExpressionContext expressionContext) {
         CostEstimator costEstimator = new CostEstimator();
         CostEstimate costEstimate = expressionContext.getOp().accept(costEstimator, expressionContext);
+        LOG.debug("opType: {}, costEstimate: {}", expressionContext.getOp().getOpType(), costEstimate);
         return getRealCost(costEstimate);
     }
 
@@ -195,11 +200,12 @@ public class CostModel {
             ConnectContext ctx = ConnectContext.get();
             SessionVariable sessionVariable = ctx.getSessionVariable();
             DistributionSpec distributionSpec = node.getDistributionSpec();
+            double outputSize = statistics.getOutputSize(outputColumns);
             // set network start cost 1 at least
             // avoid choose network plan when the cost is same as colocate plans
             switch (distributionSpec.getType()) {
                 case ANY:
-                    result = CostEstimate.ofCpu(statistics.getOutputSize(outputColumns));
+                    result = CostEstimate.ofCpu(outputSize);
                     break;
                 case BROADCAST:
                     int parallelExecInstanceNum = getParallelExecInstanceNum(
@@ -207,14 +213,15 @@ public class CostModel {
                     // beNum is the number of right table should broadcast, now use alive backends
                     int aliveBackendNumber = ctx.getAliveBackendNumber();
                     int beNum = Math.max(1, aliveBackendNumber);
-                    result = CostEstimate.of(statistics.getOutputSize(outputColumns) * aliveBackendNumber,
-                            statistics.getOutputSize(outputColumns) * beNum * parallelExecInstanceNum,
-                            Math.max(statistics.getOutputSize(outputColumns) * beNum * parallelExecInstanceNum, 1));
-                    if (statistics.getOutputSize(outputColumns) > sessionVariable.getMaxExecMemByte()) {
-                        return CostEstimate.of(result.getCpuCost() * StatsConstants.BROADCAST_JOIN_MEM_EXCEED_PENALTY,
-                                result.getMemoryCost() * StatsConstants.BROADCAST_JOIN_MEM_EXCEED_PENALTY,
-                                result.getNetworkCost() * StatsConstants.BROADCAST_JOIN_MEM_EXCEED_PENALTY);
+
+                    result = CostEstimate.of(outputSize * aliveBackendNumber,
+                            outputSize * beNum * parallelExecInstanceNum,
+                            Math.max(outputSize * beNum * parallelExecInstanceNum, 1));
+                    if (outputSize > sessionVariable.getMaxExecMemByte()) {
+                        result = result.multiplyBy(StatsConstants.BROADCAST_JOIN_MEM_EXCEED_PENALTY);
                     }
+                    LOG.debug("parallelInstNum: {}, beNum: {}, aliveBeNum: {}, outputSize: {}.",
+                            parallelExecInstanceNum, aliveBackendNumber, beNum, outputSize);
                     break;
                 case SHUFFLE:
                     // This is used to generate "ScanNode->LocalShuffle->OnePhaseLocalAgg" for the single backend,
@@ -224,12 +231,12 @@ public class CostModel {
                     boolean ignoreNetworkCost = sessionVariable.isEnableLocalShuffleAgg()
                             && sessionVariable.isEnablePipelineEngine()
                             && GlobalStateMgr.getCurrentSystemInfo().isSingleBackendAndComputeNode();
-                    double networkCost = ignoreNetworkCost ? 0 : Math.max(statistics.getOutputSize(outputColumns), 1);
+                    double networkCost = ignoreNetworkCost ? 0 : Math.max(outputSize, 1);
 
-                    result = CostEstimate.of(statistics.getOutputSize(outputColumns), 0, networkCost);
+                    result = CostEstimate.of(outputSize, 0, networkCost);
                     break;
                 case GATHER:
-                    result = CostEstimate.of(statistics.getOutputSize(outputColumns), 0,
+                    result = CostEstimate.of(outputSize, 0,
                             Math.max(statistics.getOutputSize(outputColumns), 1));
                     break;
                 default:
@@ -237,6 +244,7 @@ public class CostModel {
                             "not support " + distributionSpec.getType() + "distribution type",
                             ErrorType.UNSUPPORTED);
             }
+            LOG.debug("distribution type {}, cost: {}.", distributionSpec.getType(), result);
             return result;
         }
 
