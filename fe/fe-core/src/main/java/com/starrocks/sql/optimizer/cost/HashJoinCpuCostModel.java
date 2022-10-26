@@ -18,7 +18,8 @@ public class HashJoinCpuCostModel {
 
     private final List<BinaryPredicateOperator> eqConditions;
 
-    public HashJoinCpuCostModel(Statistics leftStatistics, Statistics rightStatistics, List<BinaryPredicateOperator> eqConditions) {
+    public HashJoinCpuCostModel(Statistics leftStatistics, Statistics rightStatistics,
+                                List<BinaryPredicateOperator> eqConditions) {
         this.leftStatistics = leftStatistics;
         this.rightStatistics = rightStatistics;
         this.eqConditions = eqConditions;
@@ -34,13 +35,13 @@ public class HashJoinCpuCostModel {
     private double getAvgProbeCost() {
         double rowCount = rightStatistics.getOutputRowCount();
         double distinctRowCount = getRightTableColStats().getDistinctValuesCount();
-        return rowCount/distinctRowCount;
+        return rowCount / distinctRowCount;
     }
 
     private double getAvgBuildCost() {
         double rowCount = rightStatistics.getOutputRowCount();
         double distinctRowCount = getRightTableColStats().getDistinctValuesCount();
-        return Math.max(1, rowCount/distinctRowCount/2);
+        return Math.max(1, rowCount / distinctRowCount / 2);
     }
 
 
