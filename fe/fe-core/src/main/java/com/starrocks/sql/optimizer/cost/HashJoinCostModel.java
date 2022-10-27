@@ -44,11 +44,11 @@ public class HashJoinCostModel {
         int beNum = Math.max(1, ConnectContext.get().getAliveBackendNumber());
         switch (execMode) {
             case BROADCAST:
-                buildCost = rightOutput * getAvgBuildCost();
+                buildCost = rightOutput;
                 probeCost = leftOutput * getAvgProbeCost();
                 break;
             case SHUFFLE:
-                buildCost = rightOutput * getAvgBuildCost() / beNum;
+                buildCost = rightOutput / beNum;
                 probeCost = leftOutput * getAvgProbeCost();
                 break;
             default:
@@ -85,12 +85,9 @@ public class HashJoinCostModel {
             default:
                 degradeRation = Math.min(1, Math.log10(rowCount / beNum) / Math.log10(BOTTOM_NUMBER));
         }
-        return degradeRation * rowCount;
+        return degradeRation;
     }
 
-    private double getAvgBuildCost() {
-        return 1;
-    }
 
     private String deriveJoinExecMode() {
         if (inputProperties == null) {
