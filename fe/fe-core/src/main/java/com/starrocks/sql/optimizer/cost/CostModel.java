@@ -14,6 +14,7 @@ import com.starrocks.sql.optimizer.JoinHelper;
 import com.starrocks.sql.optimizer.Utils;
 import com.starrocks.sql.optimizer.base.ColumnRefSet;
 import com.starrocks.sql.optimizer.base.DistributionSpec;
+import com.starrocks.sql.optimizer.base.PhysicalPropertySet;
 import com.starrocks.sql.optimizer.operator.Operator;
 import com.starrocks.sql.optimizer.operator.OperatorType;
 import com.starrocks.sql.optimizer.operator.OperatorVisitor;
@@ -49,15 +50,25 @@ public class CostModel {
     }
 
     private static double calculateCost(ExpressionContext expressionContext) {
-        CostEstimator costEstimator = new CostEstimator();
+        CostEstimator costEstimator = new CostEstimator(null);
         CostEstimate costEstimate = expressionContext.getOp().accept(costEstimator, expressionContext);
         LOG.debug("opType: {}, costEstimate: {}", expressionContext.getOp().getOpType(), costEstimate);
         return getRealCost(costEstimate);
     }
 
     public static CostEstimate calculateCostEstimate(ExpressionContext expressionContext) {
-        CostEstimator costEstimator = new CostEstimator();
+        CostEstimator costEstimator = new CostEstimator(null);
         return expressionContext.getOp().accept(costEstimator, expressionContext);
+    }
+
+    public static double calculateCostWithInputProperty(GroupExpression expression,
+                                                              List<PhysicalPropertySet> inputProperties) {
+        ExpressionContext expressionContext = new ExpressionContext(expression);
+        CostEstimator costEstimator = new CostEstimator(inputProperties);
+        CostEstimate costEstimate = expressionContext.getOp().accept(costEstimator, expressionContext);
+        LOG.debug("opType: {}, group id: {}, inputProperties: {}, costEstimate: {}",
+                expressionContext.getOp().getOpType(), expression.getGroup().getId(),  inputProperties, costEstimate);
+        return getRealCost(costEstimate);
     }
 
     public static double getRealCost(CostEstimate costEstimate) {
@@ -77,6 +88,13 @@ public class CostModel {
     }
 
     private static class CostEstimator extends OperatorVisitor<CostEstimate, ExpressionContext> {
+
+        private final List<PhysicalPropertySet> inputProperties;
+
+        private CostEstimator(List<PhysicalPropertySet> inputProperties) {
+            this.inputProperties = inputProperties;
+        }
+
         @Override
         public CostEstimate visitOperator(Operator node, ExpressionContext context) {
             return CostEstimate.zero();
@@ -264,11 +282,8 @@ public class CostModel {
 
             Preconditions.checkState(!(join.getJoinType().isCrossJoin() || eqOnPredicates.isEmpty()),
                     "should be handled by nestloopjoin");
-            HashJoinCpuCostModel cpuCostModel = new HashJoinCpuCostModel(leftStatistics, rightStatistics,
-                    eqOnPredicates);
-
-            return CostEstimate.of(cpuCostModel.getCpuCost(),
-                    rightStatistics.getOutputSize(context.getChildOutputColumns(1)), 0);
+            HashJoinCostModel joinCostModel = new HashJoinCostModel(context, inputProperties);
+            return CostEstimate.of(joinCostModel.getCpuCost(), joinCostModel.getMemCost(), 0);
         }
 
         @Override
