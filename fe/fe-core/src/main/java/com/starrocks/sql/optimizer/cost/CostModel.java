@@ -9,6 +9,7 @@ import com.starrocks.server.GlobalStateMgr;
 import com.starrocks.sql.common.ErrorType;
 import com.starrocks.sql.common.StarRocksPlannerException;
 import com.starrocks.sql.optimizer.ExpressionContext;
+import com.starrocks.sql.optimizer.Group;
 import com.starrocks.sql.optimizer.GroupExpression;
 import com.starrocks.sql.optimizer.JoinHelper;
 import com.starrocks.sql.optimizer.Utils;
@@ -40,6 +41,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CostModel {
 
@@ -52,8 +54,10 @@ public class CostModel {
     private static double calculateCost(ExpressionContext expressionContext) {
         CostEstimator costEstimator = new CostEstimator(null);
         CostEstimate costEstimate = expressionContext.getOp().accept(costEstimator, expressionContext);
-        LOG.debug("opType: {}, costEstimate: {}", expressionContext.getOp().getOpType(), costEstimate);
-        return getRealCost(costEstimate);
+        double realCost = getRealCost(costEstimate);
+        LOG.debug("opType: {}, costEstimate: {}, realCost: {}",
+                expressionContext.getOp().getOpType(), costEstimate, realCost);
+        return realCost;
     }
 
     public static CostEstimate calculateCostEstimate(ExpressionContext expressionContext) {
@@ -67,8 +71,11 @@ public class CostModel {
         CostEstimator costEstimator = new CostEstimator(inputProperties);
         CostEstimate costEstimate = expressionContext.getOp().accept(costEstimator, expressionContext);
         double realCost = getRealCost(costEstimate);
-        LOG.debug("opType: {}, group id: {}, inputProperties: {}, costEstimate: {}, realCost: {}",
+        ;
+        LOG.debug("opType: {}, group id: {}, child group id: {}, " +
+                        "inputProperties: {}, costEstimate: {}, realCost: {}",
                 expressionContext.getOp().getOpType(),
+                expression.getInputs().stream().map(Group::getId).collect(Collectors.toList()),
                 expression.getGroup().getId(),  inputProperties, costEstimate, realCost);
         return realCost;
     }

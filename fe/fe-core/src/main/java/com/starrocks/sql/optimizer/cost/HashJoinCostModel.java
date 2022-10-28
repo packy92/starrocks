@@ -17,7 +17,7 @@ public class HashJoinCostModel {
 
     private static final String SHUFFLE = "SHUFFLE";
 
-    private static final int BOTTOM_NUMBER = 10000;
+    private static final int BOTTOM_NUMBER = 1000;
 
     private final Statistics leftStatistics;
 
