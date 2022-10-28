@@ -6,11 +6,14 @@ import com.starrocks.qe.ConnectContext;
 import com.starrocks.sql.optimizer.ExpressionContext;
 import com.starrocks.sql.optimizer.base.PhysicalPropertySet;
 import com.starrocks.sql.optimizer.statistics.Statistics;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
 public class HashJoinCostModel {
 
+    private static final Logger LOG = LogManager.getLogger(HashJoinCostModel.class);
     private static final String EMPTY = "EMPTY";
 
     private static final String BROADCAST = "BROADCAST";
@@ -76,18 +79,18 @@ public class HashJoinCostModel {
     private double getAvgProbeCost() {
         String execMode = deriveJoinExecMode();
         double rowCount = rightStatistics.getOutputRowCount();
-        double degradeRation;
+        double degradeRatio;
         int beNum = Math.max(1, ConnectContext.get().getAliveBackendNumber());
         switch (execMode) {
             case BROADCAST:
-                degradeRation = Math.max(1, Math.log10(rowCount) / Math.log10(BOTTOM_NUMBER));
+                degradeRatio = Math.max(1, Math.log10(rowCount) / Math.log10(BOTTOM_NUMBER));
                 break;
             default:
-                degradeRation = Math.max(1, Math.log10(rowCount / beNum) / Math.log10(BOTTOM_NUMBER));
+                degradeRatio = Math.max(1, Math.log10(rowCount / beNum) / Math.log10(BOTTOM_NUMBER));
         }
-        return degradeRation;
+        LOG.debug("execMode: {}, degradeRatio: {}", execMode, degradeRatio);
+        return degradeRatio;
     }
-
 
     private String deriveJoinExecMode() {
         if (inputProperties == null) {
