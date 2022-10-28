@@ -17,7 +17,7 @@ public class HashJoinCostModel {
 
     private static final String SHUFFLE = "SHUFFLE";
 
-    private static final int BOTTOM_NUMBER = 50000;
+    private static final int BOTTOM_NUMBER = 10000;
 
     private final Statistics leftStatistics;
 
@@ -80,10 +80,10 @@ public class HashJoinCostModel {
         int beNum = Math.max(1, ConnectContext.get().getAliveBackendNumber());
         switch (execMode) {
             case BROADCAST:
-                degradeRation = Math.min(1, Math.log10(rowCount) / Math.log10(BOTTOM_NUMBER));
+                degradeRation = Math.max(1, Math.log10(rowCount) / Math.log10(BOTTOM_NUMBER));
                 break;
             default:
-                degradeRation = Math.min(1, Math.log10(rowCount / beNum) / Math.log10(BOTTOM_NUMBER));
+                degradeRation = Math.max(1, Math.log10(rowCount / beNum) / Math.log10(BOTTOM_NUMBER));
         }
         return degradeRation;
     }
