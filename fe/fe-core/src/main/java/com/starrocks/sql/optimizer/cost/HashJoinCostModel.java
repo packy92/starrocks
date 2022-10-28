@@ -22,7 +22,7 @@ public class HashJoinCostModel {
 
     private static final String SHUFFLE = "SHUFFLE";
 
-    private static final int BOTTOM_NUMBER = 200000;
+    private static final int BOTTOM_NUMBER = 1000000;
 
     private final Statistics leftStatistics;
 
@@ -102,7 +102,8 @@ public class HashJoinCostModel {
                 degradeRatio = Math.max(1, Math.log(mapSize / BOTTOM_NUMBER));
                 break;
             default:
-                degradeRatio = Math.max(1, (Math.log(mapSize / BOTTOM_NUMBER / (parallelFactor * 2))));
+                degradeRatio = Math.max(1, (Math.log(mapSize / BOTTOM_NUMBER) -
+                        Math.log(parallelFactor) / Math.log(2)));
         }
         LOG.debug("execMode: {}, degradeRatio: {}", execMode, degradeRatio);
         return degradeRatio;
