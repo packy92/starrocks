@@ -55,8 +55,11 @@ public class CostModel {
         CostEstimator costEstimator = new CostEstimator(null);
         CostEstimate costEstimate = expressionContext.getOp().accept(costEstimator, expressionContext);
         double realCost = getRealCost(costEstimate);
-        LOG.debug("opType: {}, costEstimate: {}, realCost: {}",
-                expressionContext.getOp().getOpType(), costEstimate, realCost);
+        LOG.debug("operator: {}, outputRowCount: {}, outPutSize: {}, costEstimate: {}, realCost: {}",
+                expressionContext.getOp(),
+                expressionContext.getStatistics().getOutputRowCount(),
+                expressionContext.getStatistics().getComputeSize(),
+                costEstimate, realCost);
         return realCost;
     }
 
@@ -71,12 +74,14 @@ public class CostModel {
         CostEstimator costEstimator = new CostEstimator(inputProperties);
         CostEstimate costEstimate = expressionContext.getOp().accept(costEstimator, expressionContext);
         double realCost = getRealCost(costEstimate);
-        ;
-        LOG.debug("opType: {}, group id: {}, child group id: {}, " +
-                        "inputProperties: {}, costEstimate: {}, realCost: {}",
-                expressionContext.getOp().getOpType(), expression.getGroup().getId(),
-                expression.getInputs().stream().map(Group::getId).collect(Collectors.toList()),
-                inputProperties, costEstimate, realCost);
+
+        LOG.debug("operator: {}, group id: {}, child group id: {}, " +
+                        "inputProperties: {}, outputRowCount: {}, outPutSize: {}, costEstimate: {}, realCost: {}",
+                expressionContext.getOp(), expression.getGroup().getId(),
+                expression.getInputs().stream().map(Group::getId).collect(Collectors.toList()), inputProperties,
+                expressionContext.getStatistics().getOutputRowCount(),
+                expressionContext.getStatistics().getComputeSize(),
+                costEstimate, realCost);
         return realCost;
     }
 
