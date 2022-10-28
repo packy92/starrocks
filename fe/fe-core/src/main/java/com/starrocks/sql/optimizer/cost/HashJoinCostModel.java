@@ -22,7 +22,7 @@ public class HashJoinCostModel {
 
     private static final String SHUFFLE = "SHUFFLE";
 
-    private static final int BOTTOM_NUMBER = 200;
+    private static final int BOTTOM_NUMBER = 1000000;
 
     private final Statistics leftStatistics;
 
@@ -98,10 +98,10 @@ public class HashJoinCostModel {
         double mapSize = Math.min(1, keySize) * rightStatistics.getOutputRowCount();
         switch (execMode) {
             case BROADCAST:
-                degradeRatio = Math.max(1, Math.log10(mapSize) / Math.log10(BOTTOM_NUMBER));
+                degradeRatio = Math.max(1, Math.log(mapSize / BOTTOM_NUMBER));
                 break;
             default:
-                degradeRatio = Math.max(1, Math.log10(mapSize / beNum) / Math.log10(BOTTOM_NUMBER));
+                degradeRatio = Math.max(1, Math.log(mapSize / beNum / BOTTOM_NUMBER));
         }
         LOG.debug("execMode: {}, degradeRatio: {}", execMode, degradeRatio);
         return degradeRatio;
