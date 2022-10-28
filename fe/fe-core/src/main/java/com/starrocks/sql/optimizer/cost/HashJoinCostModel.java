@@ -22,7 +22,7 @@ public class HashJoinCostModel {
 
     private static final String SHUFFLE = "SHUFFLE";
 
-    private static final int BOTTOM_NUMBER = 500000;
+    private static final int BOTTOM_NUMBER = 200000;
 
     private final Statistics leftStatistics;
 
@@ -95,14 +95,14 @@ public class HashJoinCostModel {
         }
         double degradeRatio;
         int parallelFactor = Math.max(ConnectContext.get().getAliveBackendNumber(),
-                ConnectContext.get().getSessionVariable().getDegreeOfParallelism());
+                ConnectContext.get().getSessionVariable().getDegreeOfParallelism()) * 2;
         double mapSize = Math.min(1, keySize) * rightStatistics.getOutputRowCount();
         switch (execMode) {
             case BROADCAST:
-                degradeRatio = Math.max(1, Math.log(mapSize / BOTTOM_NUMBER) / Math.log(2));
+                degradeRatio = Math.max(1, Math.log(mapSize / BOTTOM_NUMBER));
                 break;
             default:
-                degradeRatio = Math.max(1, (Math.log(mapSize / BOTTOM_NUMBER) - Math.log(parallelFactor * 2)) / Math.log(2));
+                degradeRatio = Math.max(1, (Math.log(mapSize / BOTTOM_NUMBER / (parallelFactor * 2))));
         }
         LOG.debug("execMode: {}, degradeRatio: {}", execMode, degradeRatio);
         return degradeRatio;
