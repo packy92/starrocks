@@ -74,9 +74,9 @@ public class CostModel {
         ;
         LOG.debug("opType: {}, group id: {}, child group id: {}, " +
                         "inputProperties: {}, costEstimate: {}, realCost: {}",
-                expressionContext.getOp().getOpType(),
+                expressionContext.getOp().getOpType(), expression.getGroup().getId(),
                 expression.getInputs().stream().map(Group::getId).collect(Collectors.toList()),
-                expression.getGroup().getId(),  inputProperties, costEstimate, realCost);
+                inputProperties, costEstimate, realCost);
         return realCost;
     }
 
