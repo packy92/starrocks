@@ -69,6 +69,6 @@ public class CostEstimate {
 
     @Override
     public String toString() {
-        return String.format("[cpuCost: %d. memoryCost: %d. networkCost: %d.]", cpuCost, memoryCost, networkCost);
+        return String.format("[cpuCost: %f. memoryCost: %f. networkCost: %f.]", cpuCost, memoryCost, networkCost);
     }
 }

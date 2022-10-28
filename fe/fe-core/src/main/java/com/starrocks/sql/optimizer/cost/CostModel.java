@@ -66,9 +66,11 @@ public class CostModel {
         ExpressionContext expressionContext = new ExpressionContext(expression);
         CostEstimator costEstimator = new CostEstimator(inputProperties);
         CostEstimate costEstimate = expressionContext.getOp().accept(costEstimator, expressionContext);
-        LOG.debug("opType: {}, group id: {}, inputProperties: {}, costEstimate: {}",
-                expressionContext.getOp().getOpType(), expression.getGroup().getId(),  inputProperties, costEstimate);
-        return getRealCost(costEstimate);
+        double realCost = getRealCost(costEstimate);
+        LOG.debug("opType: {}, group id: {}, inputProperties: {}, costEstimate: {}, realCost: {}",
+                expressionContext.getOp().getOpType(),
+                expression.getGroup().getId(),  inputProperties, costEstimate, realCost);
+        return realCost;
     }
 
     public static double getRealCost(CostEstimate costEstimate) {
