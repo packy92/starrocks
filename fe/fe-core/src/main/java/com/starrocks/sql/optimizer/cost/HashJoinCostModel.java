@@ -5,6 +5,8 @@ package com.starrocks.sql.optimizer.cost;
 import com.starrocks.qe.ConnectContext;
 import com.starrocks.sql.optimizer.ExpressionContext;
 import com.starrocks.sql.optimizer.base.PhysicalPropertySet;
+import com.starrocks.sql.optimizer.operator.scalar.BinaryPredicateOperator;
+import com.starrocks.sql.optimizer.operator.scalar.ColumnRefOperator;
 import com.starrocks.sql.optimizer.statistics.Statistics;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +22,7 @@ public class HashJoinCostModel {
 
     private static final String SHUFFLE = "SHUFFLE";
 
-    private static final int BOTTOM_NUMBER = 1000;
+    private static final int BOTTOM_NUMBER = 200;
 
     private final Statistics leftStatistics;
 
@@ -30,12 +32,15 @@ public class HashJoinCostModel {
 
     private final List<PhysicalPropertySet> inputProperties;
 
+    private final List<BinaryPredicateOperator> eqOnPredicates;
 
-    public HashJoinCostModel(ExpressionContext context, List<PhysicalPropertySet> inputProperties) {
+    public HashJoinCostModel(ExpressionContext context, List<PhysicalPropertySet> inputProperties,
+                             List<BinaryPredicateOperator> eqOnPredicates) {
         this.context = context;
         this.leftStatistics = context.getChildStatistics(0);
         this.rightStatistics = context.getChildStatistics(1);
         this.inputProperties = inputProperties;
+        this.eqOnPredicates = eqOnPredicates;
     }
 
     public double getCpuCost() {
@@ -78,15 +83,25 @@ public class HashJoinCostModel {
 
     private double getAvgProbeCost() {
         String execMode = deriveJoinExecMode();
-        double rowCount = rightStatistics.getOutputRowCount();
+        double keySize = 0;
+        for (BinaryPredicateOperator predicateOperator : eqOnPredicates) {
+            ColumnRefOperator leftCol = (ColumnRefOperator) predicateOperator.getChild(0);
+            ColumnRefOperator rightCol = (ColumnRefOperator) predicateOperator.getChild(1);
+            if (context.getChildStatistics(1).getColumnStatistics().containsKey(leftCol)) {
+                keySize += context.getChildStatistics(1).getColumnStatistic(leftCol).getAverageRowSize();
+            } else if (context.getChildStatistics(1).getColumnStatistics().containsKey(rightCol)) {
+                keySize += context.getChildStatistics(1).getColumnStatistic(rightCol).getAverageRowSize();
+            }
+        }
         double degradeRatio;
         int beNum = Math.max(1, ConnectContext.get().getAliveBackendNumber());
+        double mapSize = Math.min(1, keySize) * rightStatistics.getOutputRowCount();
         switch (execMode) {
             case BROADCAST:
-                degradeRatio = Math.max(1, Math.log10(rowCount) / Math.log10(BOTTOM_NUMBER));
+                degradeRatio = Math.max(1, Math.log10(mapSize) / Math.log10(BOTTOM_NUMBER));
                 break;
             default:
-                degradeRatio = Math.max(1, Math.log10(rowCount / beNum) / Math.log10(BOTTOM_NUMBER));
+                degradeRatio = Math.max(1, Math.log10(mapSize / beNum) / Math.log10(BOTTOM_NUMBER));
         }
         LOG.debug("execMode: {}, degradeRatio: {}", execMode, degradeRatio);
         return degradeRatio;
