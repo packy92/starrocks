@@ -78,7 +78,8 @@ public class JoinTest extends PlanTestBase {
                 "        ref_1.v4 as c7, \n" +
                 "        \n" +
                 "          max(\n" +
-                "            cast(subq_0.c0 as INT)) over (partition by ref_1.v4,subq_0.c0 order by subq_0.c1,ref_1.k4,subq_0.c1,subq_0.c0,subq_0.c0,subq_0.c0) as c8, \n" +
+                "            cast(subq_0.c0 as INT)) over (partition by ref_1.v4,subq_0.c0 order by subq_0.c1," +
+                "ref_1.k4,subq_0.c1,subq_0.c0,subq_0.c0,subq_0.c0) as c8, \n" +
                 "        21 as c9, \n" +
                 "        ref_1.k3 as c10, \n" +
                 "        subq_0.c0 as c11, \n" +
