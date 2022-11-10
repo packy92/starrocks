@@ -104,6 +104,9 @@ public class HashJoinCostModel {
         JoinExecMode execMode = deriveJoinExecMode();
         double keySize = 0;
         for (BinaryPredicateOperator predicateOperator : eqOnPredicates) {
+            if (!predicateOperator.getChild(0).isColumnRef() || !predicateOperator.getChild(1).isColumnRef()) {
+                continue;
+            }
             ColumnRefOperator leftCol = (ColumnRefOperator) predicateOperator.getChild(0);
             ColumnRefOperator rightCol = (ColumnRefOperator) predicateOperator.getChild(1);
             if (context.getChildStatistics(1).getColumnStatistics().containsKey(leftCol)) {

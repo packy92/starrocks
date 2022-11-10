@@ -18,6 +18,91 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class JoinTest extends PlanTestBase {
+
+
+    @Test
+    public void test() throws Exception {
+        starRocksAssert.withTable("CREATE TABLE `tpch_100g_customer` (\n" +
+                "  `C_CUSTKEY` int(11) NOT NULL COMMENT \"\",\n" +
+                "  `C_NAME` varchar(25) NOT NULL COMMENT \"\",\n" +
+                "  `C_ADDRESS` varchar(40) NOT NULL COMMENT \"\",\n" +
+                "  `C_NATIONKEY` int(11) NOT NULL COMMENT \"\",\n" +
+                "  `C_PHONE` char(15) NOT NULL COMMENT \"\",\n" +
+                "  `C_ACCTBAL` decimal64(15, 2) NOT NULL COMMENT \"\",\n" +
+                "  `C_MKTSEGMENT` char(10) NOT NULL COMMENT \"\",\n" +
+                "  `C_COMMENT` varchar(117) NOT NULL COMMENT \"\"\n" +
+                ") ENGINE=OLAP\n" +
+                "DUPLICATE KEY(`C_CUSTKEY`)\n" +
+                "COMMENT \"OLAP\"\n" +
+                "DISTRIBUTED BY HASH(`C_CUSTKEY`) BUCKETS 12\n" +
+                "PROPERTIES (\n" +
+                "\"replication_num\" = \"1\",\n" +
+                "\"in_memory\" = \"false\",\n" +
+                "\"storage_format\" = \"DEFAULT\",\n" +
+                "\"enable_persistent_index\" = \"false\",\n" +
+                "\"compression\" = \"LZ4\"\n" +
+                ");")
+                .withTable("CREATE TABLE `primary_table` (\n" +
+                        "  `k1` datetime NOT NULL COMMENT \"\",\n" +
+                        "  `k2` varchar(65533) NOT NULL COMMENT \"\",\n" +
+                        "  `k3` varchar(65533) NOT NULL COMMENT \"\",\n" +
+                        "  `k4` boolean NOT NULL COMMENT \"\",\n" +
+                        "  `v1` tinyint(4) NOT NULL COMMENT \"\",\n" +
+                        "  `v2` smallint(6) NOT NULL COMMENT \"\",\n" +
+                        "  `v3` int(11) NOT NULL COMMENT \"\",\n" +
+                        "  `v4` double NOT NULL COMMENT \"\",\n" +
+                        "  `v5` decimal128(27, 9) NOT NULL COMMENT \"\"\n" +
+                        ") ENGINE=OLAP\n" +
+                        "PRIMARY KEY(`k1`, `k2`, `k3`, `k4`)\n" +
+                        "COMMENT \"OLAP\"\n" +
+                        "DISTRIBUTED BY HASH(`k1`, `k2`, `k3`, `k4`) BUCKETS 3\n" +
+                        "PROPERTIES (\n" +
+                        "\"replication_num\" = \"1\",\n" +
+                        "\"in_memory\" = \"false\",\n" +
+                        "\"storage_format\" = \"DEFAULT\",\n" +
+                        "\"enable_persistent_index\" = \"false\",\n" +
+                        "\"compression\" = \"LZ4\"\n" +
+                        ");");
+        String sql = "select  \n" +
+                "  subq_1.c1 as c0\n" +
+                "from \n" +
+                "  (select  \n" +
+                "        subq_0.c0 as c0, \n" +
+                "        cast(coalesce(ref_1.k4,\n" +
+                "          subq_0.c1) as INT) as c1, \n" +
+                "        subq_0.c0 as c2, \n" +
+                "        subq_0.c0 as c3, \n" +
+                "        subq_0.c0 as c4, \n" +
+                "        subq_0.c1 as c5, \n" +
+                "        ref_1.k2 as c6, \n" +
+                "        ref_1.v4 as c7, \n" +
+                "        \n" +
+                "          max(\n" +
+                "            cast(subq_0.c0 as INT)) over (partition by ref_1.v4,subq_0.c0 order by subq_0.c1,ref_1.k4,subq_0.c1,subq_0.c0,subq_0.c0,subq_0.c0) as c8, \n" +
+                "        21 as c9, \n" +
+                "        ref_1.k3 as c10, \n" +
+                "        subq_0.c0 as c11, \n" +
+                "        subq_0.c1 as c12, \n" +
+                "        ref_1.k4 as c13\n" +
+                "      from \n" +
+                "        (select  \n" +
+                "                ref_0.C_CUSTKEY as c0, \n" +
+                "                ref_0.C_CUSTKEY as c1\n" +
+                "              from \n" +
+                "                tpch_100g_customer as ref_0\n" +
+                "              where ((ref_0.C_ACCTBAL <= ref_0.C_ACCTBAL) \n" +
+                "                  and (ref_0.C_ACCTBAL = ref_0.C_ACCTBAL)) \n" +
+                "                and (true)\n" +
+                "              limit 69) as subq_0\n" +
+                "          inner join primary_table as ref_1\n" +
+                "          on (subq_0.c0 = ref_1.k4 )\n" +
+                "      where ref_1.v3 < ref_1.k4) as subq_1\n" +
+                "where subq_1.c13 = case when (true) \n" +
+                "      or (cast(null as DOUBLE) > subq_1.c7) then subq_1.c5 else subq_1.c5 end;";
+        String plan = getFragmentPlan(sql);
+        System.out.println(plan);
+    }
+
     @Test
     public void testColocateDistributeSatisfyShuffleColumns() throws Exception {
         FeConstants.runningUnitTest = true;
