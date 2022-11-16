@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 public class SeriallyTaskScheduler implements TaskScheduler {
 
-    private final static Logger LOG = LogManager.getLogger(SeriallyTaskScheduler.class);
+    private static final Logger LOG = LogManager.getLogger(SeriallyTaskScheduler.class);
     private final Stack<OptimizerTask> tasks;
 
     private SeriallyTaskScheduler() {
@@ -29,11 +29,13 @@ public class SeriallyTaskScheduler implements TaskScheduler {
         Stopwatch watch = context.getOptimizerContext().getTraceInfo().getStopwatch();
         while (!tasks.empty()) {
             long timeCost = watch.elapsed(TimeUnit.MILLISECONDS);
-            if (timeCost > timeout) {
+            if (timeCost > 500) {
                 // Should have at least one valid plan
                 // group will be null when in rewrite phase
                 Group group = context.getOptimizerContext().getMemo().getRootGroup();
                 if (group == null || !group.hasBestExpression(context.getRequiredProperty())) {
+                    LOG.info("optimize time has elapsed: {}", timeCost);
+                    System.out.println("optimize time has elapsed: " + timeCost);
                     throw new StarRocksPlannerException("StarRocks planner use long time " + timeout +
                             " ms in " + (group == null ? "logical" : "memo") + " phase, This probably because " +
                             "1. FE Full GC, " +
@@ -45,6 +47,7 @@ public class SeriallyTaskScheduler implements TaskScheduler {
                             "3. enlarge new_planner_optimize_timeout session variable",
                             ErrorType.INTERNAL_ERROR);
                 }
+                break;
             }
             OptimizerTask task = tasks.pop();
             context.getOptimizerContext().setTaskContext(context);
