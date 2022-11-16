@@ -112,7 +112,8 @@ public class ConnectScheduler {
     // Register one connection with its connection id.
     public boolean registerConnection(ConnectContext ctx) {
         if (numberConnection.get() >= maxConnections.get()) {
-            return false;
+            LOG.info("exceed system max connections {}", maxConnections.get());
+            return true;
         }
         // Check user
         if (connByUser.get(ctx.getQualifiedUser()) == null) {
@@ -126,7 +127,8 @@ public class ConnectScheduler {
             currentConns = ctx.getGlobalStateMgr().getAuth().getMaxConn(ctx.getQualifiedUser());
         }
         if (conns >= currentConns) {
-            return false;
+            LOG.info("exceed user max connections {}", currentConns);
+            return true;
         }
         numberConnection.incrementAndGet();
         connByUser.get(ctx.getQualifiedUser()).incrementAndGet();
