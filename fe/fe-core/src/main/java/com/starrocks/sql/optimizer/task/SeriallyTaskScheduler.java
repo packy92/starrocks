@@ -3,14 +3,16 @@
 package com.starrocks.sql.optimizer.task;
 
 import com.google.common.base.Stopwatch;
-import com.starrocks.sql.common.ErrorType;
-import com.starrocks.sql.common.StarRocksPlannerException;
 import com.starrocks.sql.optimizer.Group;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
 public class SeriallyTaskScheduler implements TaskScheduler {
+
+    private final static Logger LOG = LogManager.getLogger(SeriallyTaskScheduler.class);
     private final Stack<OptimizerTask> tasks;
 
     private SeriallyTaskScheduler() {
@@ -26,7 +28,8 @@ public class SeriallyTaskScheduler implements TaskScheduler {
         long timeout = context.getOptimizerContext().getSessionVariable().getOptimizerExecuteTimeout();
         Stopwatch watch = context.getOptimizerContext().getTraceInfo().getStopwatch();
         while (!tasks.empty()) {
-            if (timeout > 0 && watch.elapsed(TimeUnit.MILLISECONDS) > timeout) {
+            long timeCost = watch.elapsed(TimeUnit.MILLISECONDS);
+            if (timeCost > timeout) {
                 // Should have at least one valid plan
                 // group will be null when in rewrite phase
                 Group group = context.getOptimizerContext().getMemo().getRootGroup();
