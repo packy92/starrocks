@@ -45,7 +45,6 @@ public class SeriallyTaskScheduler implements TaskScheduler {
                             "3. enlarge new_planner_optimize_timeout session variable",
                             ErrorType.INTERNAL_ERROR);
                 }
-                break;
             }
             OptimizerTask task = tasks.pop();
             context.getOptimizerContext().setTaskContext(context);

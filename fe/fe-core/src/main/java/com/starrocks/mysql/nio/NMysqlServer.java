@@ -52,7 +52,7 @@ public class NMysqlServer extends MysqlServer {
 
     private static final int DEFAULT_PROCESSOR = Runtime.getRuntime().availableProcessors();
 
-    private static final int WORKER_NUM = DEFAULT_PROCESSOR * DEFAULT_PROCESSOR;
+    private static final int WORKER_NUM = DEFAULT_PROCESSOR * 4;
 
     // default task service.
     private ExecutorService taskService = ThreadPoolManager
