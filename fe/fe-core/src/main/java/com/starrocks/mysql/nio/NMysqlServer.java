@@ -52,12 +52,12 @@ public class NMysqlServer extends MysqlServer {
 
     private static final int DEFAULT_PROCESSOR = Runtime.getRuntime().availableProcessors();
 
-    private static final int workerNum = DEFAULT_PROCESSOR * DEFAULT_PROCESSOR;
+    private static final int WORKER_NUM = DEFAULT_PROCESSOR * DEFAULT_PROCESSOR;
 
 
     // default task service.
     private ExecutorService taskService = ThreadPoolManager
-            .newDemonFixedThreadPool(workerNum, "starrocks-mysql-nio-pool", true);
+            .newDemonFixedThreadPool(WORKER_NUM, "starrocks-mysql-nio-pool", true);
 
 
     public NMysqlServer(int port, ConnectScheduler connectScheduler, SSLContext sslContext) {
