@@ -33,10 +33,10 @@ import org.xnio.Xnio;
 import org.xnio.XnioWorker;
 import org.xnio.channels.AcceptingChannel;
 
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
-import javax.net.ssl.SSLContext;
 
 /**
  * mysql protocol implementation based on nio.
@@ -50,9 +50,15 @@ public class NMysqlServer extends MysqlServer {
 
     private AcceptingChannel<StreamConnection> server;
 
+    private static final int DEFAULT_PROCESSOR = Runtime.getRuntime().availableProcessors();
+
+    private static final int workerNum = DEFAULT_PROCESSOR * DEFAULT_PROCESSOR;
+
+
     // default task service.
     private ExecutorService taskService = ThreadPoolManager
-            .newDaemonCacheThreadPool(Config.max_mysql_service_task_threads_num, "starrocks-mysql-nio-pool", true);
+            .newDemonFixedThreadPool(workerNum, "starrocks-mysql-nio-pool", true);
+
 
     public NMysqlServer(int port, ConnectScheduler connectScheduler, SSLContext sslContext) {
         this.port = port;

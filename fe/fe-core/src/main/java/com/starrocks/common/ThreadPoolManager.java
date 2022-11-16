@@ -122,6 +122,21 @@ public class ThreadPoolManager {
                 new BlockedPolicy(poolName, 60), poolName, needRegisterMetric);
     }
 
+    public static ThreadPoolExecutor newDemonFixedThreadPool(int numThread, String poolName, boolean needRegisterMetric) {
+        ThreadFactory threadFactory = namedThreadFactory(poolName);
+        ThreadPoolExecutor threadPool =
+                new ThreadPoolExecutor(numThread,
+                        numThread,
+                        0L,
+                        TimeUnit.MILLISECONDS,
+                        new LinkedBlockingQueue<>(),
+                        threadFactory);
+        if (needRegisterMetric) {
+            nameToThreadPoolMap.put(poolName, threadPool);
+        }
+        return threadPool;
+    }
+
     public static PriorityThreadPoolExecutor newDaemonFixedPriorityThreadPool(int numThread, int queueSize,
             String poolName, boolean needRegisterMetric) {
         ThreadFactory threadFactory = namedThreadFactory(poolName);
