@@ -127,7 +127,7 @@ public class ConnectScheduler {
             currentConns = ctx.getGlobalStateMgr().getAuth().getMaxConn(ctx.getQualifiedUser());
         }
         if (conns >= currentConns) {
-            LOG.info("exceed user max connections {}", currentConns);
+            LOG.info("exceed user {} max connection limit {}", ctx.getQualifiedUser(), currentConns);
             return true;
         }
         numberConnection.incrementAndGet();

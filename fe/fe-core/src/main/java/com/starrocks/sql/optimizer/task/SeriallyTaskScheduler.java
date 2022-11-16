@@ -3,6 +3,8 @@
 package com.starrocks.sql.optimizer.task;
 
 import com.google.common.base.Stopwatch;
+import com.starrocks.sql.common.ErrorType;
+import com.starrocks.sql.common.StarRocksPlannerException;
 import com.starrocks.sql.optimizer.Group;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,13 +31,12 @@ public class SeriallyTaskScheduler implements TaskScheduler {
         Stopwatch watch = context.getOptimizerContext().getTraceInfo().getStopwatch();
         while (!tasks.empty()) {
             long timeCost = watch.elapsed(TimeUnit.MILLISECONDS);
-            if (timeCost > 500) {
+            if (timeout > 0 && timeCost > 500) {
                 // Should have at least one valid plan
                 // group will be null when in rewrite phase
                 Group group = context.getOptimizerContext().getMemo().getRootGroup();
                 if (group == null || !group.hasBestExpression(context.getRequiredProperty())) {
                     LOG.info("optimize time has elapsed: {}", timeCost);
-                    System.out.println("optimize time has elapsed: " + timeCost);
                     throw new StarRocksPlannerException("StarRocks planner use long time " + timeout +
                             " ms in " + (group == null ? "logical" : "memo") + " phase, This probably because " +
                             "1. FE Full GC, " +
