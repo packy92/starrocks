@@ -154,6 +154,9 @@ public class JoinReorderGreedy extends JoinOrder {
 
     protected GroupInfo getOrCreateGroupInfo(JoinLevel joinLevel, BitSet atoms,
                                              ExpressionInfo exprInfo) {
+        if (joinLevel.level == 41) {
+            int a = 1;
+        }
         GroupInfo groupInfo;
         if (bitSetToGroupInfo.containsKey(atoms)) {
             groupInfo = bitSetToGroupInfo.get(atoms);
