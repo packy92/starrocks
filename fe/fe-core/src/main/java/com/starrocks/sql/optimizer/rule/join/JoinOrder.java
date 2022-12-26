@@ -275,10 +275,10 @@ public abstract class JoinOrder {
         double cost = exprInfo.expr.getStatistics().getOutputRowCount();
         exprInfo.rowCount = cost;
         if (exprInfo.leftChildExpr != null) {
-            cost = cost > StatsConstants.MAXIMUM_COST - exprInfo.leftChildExpr.bestExprInfo.cost ?
+            cost = cost > (StatsConstants.MAXIMUM_COST - exprInfo.leftChildExpr.bestExprInfo.cost) ?
                     StatsConstants.MAXIMUM_COST : cost + exprInfo.leftChildExpr.bestExprInfo.cost;
 
-            cost = cost > StatsConstants.MAXIMUM_COST - exprInfo.rightChildExpr.bestExprInfo.cost ?
+            cost = cost > (StatsConstants.MAXIMUM_COST - exprInfo.rightChildExpr.bestExprInfo.cost) ?
                     StatsConstants.MAXIMUM_COST : cost + exprInfo.rightChildExpr.bestExprInfo.cost;
 
             LogicalJoinOperator joinOperator = (LogicalJoinOperator) exprInfo.expr.getOp();
