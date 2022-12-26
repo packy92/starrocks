@@ -141,6 +141,9 @@ public class JoinReorderGreedy extends JoinOrder {
         double bestCost = Double.MAX_VALUE;
         GroupInfo bestExpr = null;
         for (GroupInfo groupInfo : groupInfos) {
+            if (groupInfo.bestExprInfo == null) {
+                int a = 1;
+            }
             if (groupInfo.bestExprInfo.cost < bestCost) {
                 bestExpr = groupInfo;
                 bestCost = groupInfo.bestExprInfo.cost;
