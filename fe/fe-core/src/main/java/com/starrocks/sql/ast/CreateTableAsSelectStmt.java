@@ -15,7 +15,10 @@
 
 package com.starrocks.sql.ast;
 
+import com.starrocks.analysis.ColumnDef;
+import com.starrocks.analysis.Expr;
 import com.starrocks.analysis.RedirectStatus;
+import com.starrocks.analysis.TypeDef;
 import com.starrocks.common.AnalysisException;
 import com.starrocks.common.DdlException;
 import com.starrocks.qe.ConnectContext;
@@ -51,6 +54,11 @@ public class CreateTableAsSelectStmt extends StatementBase {
         }
     }
 
+    public void createTable(ConnectContext session, List<Expr> outputExprs) throws AnalysisException {
+        updateColumnDef(outputExprs);
+        createTable(session);
+    }
+
     public void dropTable(ConnectContext session) throws AnalysisException {
         try {
             session.getGlobalStateMgr().dropTable(new DropTableStmt(true, createTableStmt.getDbTbl(), true));
@@ -83,5 +91,16 @@ public class CreateTableAsSelectStmt extends StatementBase {
     @Override
     public <R, C> R accept(AstVisitor<R, C> visitor, C context) {
         return visitor.visitCreateTableAsSelectStatement(this, context);
+    }
+
+    private void updateColumnDef(List<Expr> outputExprs) {
+        for (int i = 0; i < outputExprs.size(); i++) {
+            ColumnDef columndef = createTableStmt.getColumnDefs().get(i);
+            Expr expr = outputExprs.get(i);
+
+            ColumnDef newColumnDef = new ColumnDef(columndef.getName(), new TypeDef(expr.getType()), false,
+                    null, expr.isNullable(), ColumnDef.DefaultValueDef.NOT_SET, "");
+            createTableStmt.getColumnDefs().set(i, newColumnDef);
+        }
     }
 }

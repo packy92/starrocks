@@ -563,13 +563,23 @@ public class StmtExecutor {
     private void handleCreateTableAsSelectStmt(long beginTimeInNanoSecond) throws Exception {
         CreateTableAsSelectStmt createTableAsSelectStmt = (CreateTableAsSelectStmt) parsedStmt;
 
-        // if create table failed should not drop table. because table may already exists,
-        // and for other cases the exception will throw and the rest of the code will not be executed.
-        createTableAsSelectStmt.createTable(context);
+        ExecPlan execPlan = null;
         try {
             InsertStmt insertStmt = createTableAsSelectStmt.getInsertStmt();
-            ExecPlan execPlan = new StatementPlanner().plan(insertStmt, context);
-            handleDMLStmt(execPlan, ((CreateTableAsSelectStmt) parsedStmt).getInsertStmt());
+            execPlan = new StatementPlanner().plan(insertStmt, context);
+        } catch (Throwable t) {
+            LOG.warn("failed to build plan from select statement, errMsg: {}", t);
+            throw t;
+        } finally {
+            QeProcessorImpl.INSTANCE.unregisterQuery(context.getExecutionId());
+        }
+
+        // if create table failed should not drop table. because table may already exists,
+        // and for other cases the exception will throw and the rest of the code will not be executed.
+        createTableAsSelectStmt.createTable(context, execPlan.getOutputExprs());
+
+        try {
+            handleDMLStmt(execPlan, createTableAsSelectStmt.getInsertStmt());
             if (context.getSessionVariable().isEnableProfile()) {
                 writeProfile(beginTimeInNanoSecond);
             }
@@ -577,8 +587,9 @@ public class StmtExecutor {
                 ((CreateTableAsSelectStmt) parsedStmt).dropTable(context);
             }
         } catch (Throwable t) {
-            LOG.warn("handle create table as select stmt fail", t);
-            ((CreateTableAsSelectStmt) parsedStmt).dropTable(context);
+            LOG.warn("errors occur while copying data to table {}, errMsg: {}",
+                    createTableAsSelectStmt.getCreateTableStmt().getTableName(), t);
+            createTableAsSelectStmt.dropTable(context);
             throw t;
         } finally {
             QeProcessorImpl.INSTANCE.unregisterQuery(context.getExecutionId());
