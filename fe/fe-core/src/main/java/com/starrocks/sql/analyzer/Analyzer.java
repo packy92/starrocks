@@ -238,8 +238,11 @@ public class Analyzer {
 
         @Override
         public Void visitCreateTableAsSelectStatement(CreateTableAsSelectStmt statement, ConnectContext session) {
-            // this phrase do not analyze insertStmt, insertStmt will analyze in
-            // StmtExecutor.handleCreateTableAsSelectStmt because planner will not do meta operations
+            // this phrase do not analyze insertStmt and createTableStmt
+            // insertStmt will analyze in StmtExecutor.handleCreateTableAsSelectStmt
+            // because planner will not do meta operations.
+            // createTableStmt will be analyzed in StmtExecutor.handleCreateTableAsSelectStmt
+            // because the column can be defined only when obtain the outExprs of the query
             CTASAnalyzer.analyze(statement, session);
             return null;
         }

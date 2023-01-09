@@ -22,6 +22,7 @@ import com.starrocks.analysis.TypeDef;
 import com.starrocks.common.AnalysisException;
 import com.starrocks.common.DdlException;
 import com.starrocks.qe.ConnectContext;
+import com.starrocks.sql.analyzer.Analyzer;
 
 import java.util.List;
 
@@ -56,6 +57,7 @@ public class CreateTableAsSelectStmt extends StatementBase {
 
     public void createTable(ConnectContext session, List<Expr> outputExprs) throws AnalysisException {
         updateColumnDef(outputExprs);
+        Analyzer.analyze(createTableStmt, session);
         createTable(session);
     }
 

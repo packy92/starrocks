@@ -90,13 +90,10 @@ public class CTASAnalyzer {
             }
         }
 
-        boolean isPKTable = false;
         KeysDesc keysDesc = createTableStmt.getKeysDesc();
         if (keysDesc != null) {
             KeysType keysType = keysDesc.getKeysType();
-            if (keysType == KeysType.PRIMARY_KEYS) {
-                isPKTable = true;
-            } else if (keysType != KeysType.DUP_KEYS) {
+            if (keysType != KeysType.DUP_KEYS) {
                 throw new SemanticException("CTAS does not support %s table", keysDesc.getKeysType().toString());
             }
         }
@@ -157,8 +154,6 @@ public class CTASAnalyzer {
 
 
         }
-
-        Analyzer.analyze(createTableStmt, session);
 
         InsertStmt insertStmt = createTableAsSelectStmt.getInsertStmt();
         insertStmt.setQueryStatement(queryStatement);
