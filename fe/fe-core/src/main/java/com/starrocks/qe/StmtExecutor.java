@@ -565,10 +565,10 @@ public class StmtExecutor {
 
         ExecPlan execPlan = null;
         try {
-            InsertStmt insertStmt = createTableAsSelectStmt.getInsertStmt();
-            execPlan = new StatementPlanner().plan(insertStmt, context);
+            // TODO Have to build execPlan because of cannot obtain correct nullable info in logical plan phase
+            execPlan = new StatementPlanner().plan(createTableAsSelectStmt.getQueryStatement(), context);
         } catch (Throwable t) {
-            LOG.warn("failed to build plan from select statement, errMsg: {}", t);
+            LOG.warn("failed to build plan from queryStatement, errMsg: {}", t);
             throw t;
         } finally {
             QeProcessorImpl.INSTANCE.unregisterQuery(context.getExecutionId());
@@ -577,6 +577,16 @@ public class StmtExecutor {
         // if create table failed should not drop table. because table may already exists,
         // and for other cases the exception will throw and the rest of the code will not be executed.
         createTableAsSelectStmt.createTable(context, execPlan.getOutputExprs());
+
+        try {
+            InsertStmt insertStmt = createTableAsSelectStmt.getInsertStmt();
+            execPlan = new StatementPlanner().plan(insertStmt, context);
+        } catch (Throwable t) {
+            LOG.warn("failed to build plan from insertStmt, errMsg: {}", t);
+            throw t;
+        } finally {
+            QeProcessorImpl.INSTANCE.unregisterQuery(context.getExecutionId());
+        }
 
         try {
             handleDMLStmt(execPlan, createTableAsSelectStmt.getInsertStmt());
