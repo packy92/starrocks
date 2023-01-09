@@ -93,8 +93,8 @@ public class CTASAnalyzer {
         KeysDesc keysDesc = createTableStmt.getKeysDesc();
         if (keysDesc != null) {
             KeysType keysType = keysDesc.getKeysType();
-            if (keysType != KeysType.DUP_KEYS) {
-                throw new SemanticException("CTAS does not support %s table", keysDesc.getKeysType().toString());
+            if (keysType != KeysType.DUP_KEYS || keysType != KeysType.PRIMARY_KEYS) {
+                throw new SemanticException("CTAS does not support %s table", keysDesc.getKeysType());
             }
         }
 
