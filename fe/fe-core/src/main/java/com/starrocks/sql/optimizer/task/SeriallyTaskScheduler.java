@@ -70,7 +70,7 @@ public class SeriallyTaskScheduler implements TaskScheduler {
             long start = System.currentTimeMillis();
             task.execute();
             long costTime = System.currentTimeMillis() - start;
-            if(task instanceof ApplyRuleTask) {
+            if (task instanceof ApplyRuleTask) {
                 map.put("apply", map.get("apply") + costTime);
             } else if (task instanceof DeriveStatsTask) {
                 map.put("derive", map.get("derive") + costTime);
