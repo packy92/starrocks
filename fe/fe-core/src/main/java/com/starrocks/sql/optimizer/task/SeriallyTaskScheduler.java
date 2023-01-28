@@ -54,14 +54,7 @@ public class SeriallyTaskScheduler implements TaskScheduler {
             }
             OptimizerTask task = tasks.pop();
             context.getOptimizerContext().setTaskContext(context);
-            long start = System.currentTimeMillis();
             task.execute();
-            long end = System.currentTimeMillis();
-            if ((end - start) > 10) {
-                LOG.info("task: {}, time cost {} ms", task, end - start);
-            }
-
-
         }
     }
 
