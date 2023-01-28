@@ -7,11 +7,16 @@ import com.starrocks.sql.common.ErrorType;
 import com.starrocks.sql.common.StarRocksPlannerException;
 import com.starrocks.sql.optimizer.Group;
 import com.starrocks.sql.optimizer.Memo;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
 public class SeriallyTaskScheduler implements TaskScheduler {
+
+    private static final Logger LOG = LogManager.getLogger(SeriallyTaskScheduler.class);
+
     private final Stack<OptimizerTask> tasks;
 
     private SeriallyTaskScheduler() {
@@ -49,7 +54,11 @@ public class SeriallyTaskScheduler implements TaskScheduler {
             }
             OptimizerTask task = tasks.pop();
             context.getOptimizerContext().setTaskContext(context);
+            long start = System.currentTimeMillis();
             task.execute();
+            long end = System.currentTimeMillis();
+            LOG.info("task: {}, cost {} ms", task, end - start);
+
         }
     }
 
