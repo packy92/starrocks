@@ -294,9 +294,10 @@ public class Utils {
         Operator operator = root.getOp();
 
         if (operator instanceof LogicalJoinOperator) {
-            joinNum++;
             if (((LogicalJoinOperator) operator).getJoinType().isSemiAntiJoin()) {
                 hasSemi = true;
+            } else {
+                joinNum = joinNum + 1;
             }
 
             if (joinNum > maxJoin && hasSemi) {
@@ -306,7 +307,7 @@ public class Utils {
 
         for (OptExpression child : root.getInputs()) {
             if (operator instanceof LogicalJoinOperator) {
-                if (!capableSemiReorder(child, hasSemi, joinNum++, maxJoin)) {
+                if (!capableSemiReorder(child, hasSemi, joinNum, maxJoin)) {
                     return false;
                 }
             } else {
