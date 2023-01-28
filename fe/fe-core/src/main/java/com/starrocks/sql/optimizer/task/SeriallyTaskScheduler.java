@@ -57,7 +57,7 @@ public class SeriallyTaskScheduler implements TaskScheduler {
             long start = System.currentTimeMillis();
             task.execute();
             long end = System.currentTimeMillis();
-            if ((end -start) > 10) {
+            if ((end - start) > 10) {
                 LOG.info("task: {}, time cost {} ms", task, end - start);
             }
 
