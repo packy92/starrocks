@@ -32,6 +32,8 @@ import com.starrocks.sql.optimizer.operator.scalar.CallOperator;
 import com.starrocks.sql.optimizer.statistics.ColumnStatistic;
 import com.starrocks.sql.optimizer.statistics.Statistics;
 import com.starrocks.sql.optimizer.statistics.StatisticsCalculator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,6 +51,9 @@ import java.util.stream.Collectors;
  * EnforceAndCostTask implementation inspire by Cascades paper and CMU noisepage project
  */
 public class EnforceAndCostTask extends OptimizerTask implements Cloneable {
+
+    private static final Logger LOG = LogManager.getLogger(EnforceAndCostTask.class);
+
     private final GroupExpression groupExpression;
     // multi required PropertySets for children
     private List<List<PhysicalPropertySet>> childrenRequiredPropertiesList;
@@ -238,6 +243,7 @@ public class EnforceAndCostTask extends OptimizerTask implements Cloneable {
         double newUpperBound = context.getUpperBoundCost() - curTotalCost;
         TaskContext taskContext = new TaskContext(context.getOptimizerContext(), inputProperty,
                 context.getRequiredColumns(), newUpperBound);
+        LOG.info("need optimized group: {}, property: {}", childGroup.getId(), inputProperty);
         pushTask(new OptimizeGroupTask(taskContext, childGroup));
     }
 

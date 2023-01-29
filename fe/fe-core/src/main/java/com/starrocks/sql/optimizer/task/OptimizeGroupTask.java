@@ -3,6 +3,8 @@
 package com.starrocks.sql.optimizer.task;
 
 import com.starrocks.sql.optimizer.Group;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Optimize a group within a given context.
@@ -14,6 +16,9 @@ import com.starrocks.sql.optimizer.Group;
  * enforce and cost all physical operator trees given the current OptimizerContext.
  */
 public class OptimizeGroupTask extends OptimizerTask {
+
+    private static final Logger LOG = LogManager.getLogger(OptimizeGroupTask.class);
+
     private final Group group;
 
     public OptimizeGroupTask(TaskContext context, Group group) {
@@ -40,6 +45,7 @@ public class OptimizeGroupTask extends OptimizerTask {
         }
 
         for (int i = group.getPhysicalExpressions().size() - 1; i >= 0; i--) {
+            LOG.info("group id: {} need enforce", group.getId());
             pushTask((new EnforceAndCostTask(context, group.getPhysicalExpressions().get(i))));
         }
     }
