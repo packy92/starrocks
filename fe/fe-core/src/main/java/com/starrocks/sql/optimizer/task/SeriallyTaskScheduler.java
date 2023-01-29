@@ -3,7 +3,6 @@
 package com.starrocks.sql.optimizer.task;
 
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.Maps;
 import com.starrocks.common.Pair;
 import com.starrocks.sql.common.ErrorType;
 import com.starrocks.sql.common.StarRocksPlannerException;
@@ -12,7 +11,6 @@ import com.starrocks.sql.optimizer.Memo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 
@@ -21,17 +19,6 @@ public class SeriallyTaskScheduler implements TaskScheduler {
     private static final Logger LOG = LogManager.getLogger(SeriallyTaskScheduler.class);
 
     private final Stack<OptimizerTask> tasks;
-
-    private static Map<String, Pair<Long, Long>> map = Maps.newHashMap();
-
-    static {
-        map.put("apply", Pair.create(0L, 0L));
-        map.put("derive", Pair.create(0L, 0L));
-        map.put("enforce", Pair.create(0L, 0L));
-        map.put("explore", Pair.create(0L, 0L));
-        map.put("optimizeExp", Pair.create(0L, 0L));
-        map.put("optimizeGroup", Pair.create(0L, 0L));
-    }
 
     private SeriallyTaskScheduler() {
         tasks = new Stack<>();
@@ -72,21 +59,21 @@ public class SeriallyTaskScheduler implements TaskScheduler {
             task.execute();
             long costTime = System.currentTimeMillis() - start;
             if (task instanceof ApplyRuleTask) {
-                map.put("apply", update(map.get("apply"), costTime));
+                context.map.put("apply", update(context.map.get("apply"), costTime));
             } else if (task instanceof DeriveStatsTask) {
-                map.put("derive", update(map.get("derive"), costTime));
+                context.map.put("derive", update(context.map.get("derive"), costTime));
             } else if (task instanceof EnforceAndCostTask) {
-                map.put("enforce", update(map.get("enforce"), costTime));
+                context.map.put("enforce", update(context.map.get("enforce"), costTime));
             } else if (task instanceof ExploreGroupTask) {
-                map.put("explore", update(map.get("explore"), costTime));
+                context.map.put("explore", update(context.map.get("explore"), costTime));
             } else if (task instanceof OptimizeExpressionTask) {
-                map.put("optimizeExp", update(map.get("optimizeExp"), costTime));
+                context.map.put("optimizeExp", update(context.map.get("optimizeExp"), costTime));
             } else if (task instanceof OptimizeGroupTask) {
-                map.put("optimizeGroup", update(map.get("optimizeGroup"), costTime));
+                context.map.put("optimizeGroup", update(context.map.get("optimizeGroup"), costTime));
             }
         }
-        System.out.println(map);
-        LOG.info("each task cost time is: {}", map);
+        System.out.println(context.map);
+        LOG.info("each task cost time is: {}", context.map);
     }
 
     private Pair<Long, Long> update(Pair<Long, Long> pair, long time) {
