@@ -125,6 +125,10 @@ public class EnforceAndCostTask extends OptimizerTask implements Cloneable {
                 curTotalCost += localCost;
             }
 
+            if (curTotalCost >= context.getUpperBoundCost()) {
+                return;
+            }
+
             for (; curChildIndex < groupExpression.getInputs().size(); curChildIndex++) {
                 PhysicalPropertySet childRequiredProperty = childrenRequiredProperties.get(curChildIndex);
                 Group childGroup = groupExpression.getInputs().get(curChildIndex);
@@ -338,6 +342,9 @@ public class EnforceAndCostTask extends OptimizerTask implements Cloneable {
 
         if (curTotalCost < context.getUpperBoundCost()) {
             // update context upperbound cost
+            if (groupExpression.getGroup().getId() == 35) {
+                int a = 1;
+            }
             context.setUpperBoundCost(curTotalCost);
         }
     }
