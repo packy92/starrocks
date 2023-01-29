@@ -133,13 +133,16 @@ public class EnforceAndCostTask extends OptimizerTask implements Cloneable {
                 GroupExpression childBestExpr = childGroup.getBestExpression(childRequiredProperty);
 
                 if (childBestExpr == null && prevChildIndex >= curChildIndex) {
-                    // If there can not find best child expr or push child's OptimizeGroupTask, The child has been
+                    // If there can not find the best child expr or push child's OptimizeGroupTask, The child has been
                     // pruned because of UpperBound cost prune, and parent task can break here and return
                     break;
                 }
 
                 if (childBestExpr == null) {
                     // We haven't optimized child group
+                    if (childGroup.getId() == 41) {
+                        int a = 1;
+                    }
                     prevChildIndex = curChildIndex;
                     optimizeChildGroup(childRequiredProperty, childGroup);
                     return;
