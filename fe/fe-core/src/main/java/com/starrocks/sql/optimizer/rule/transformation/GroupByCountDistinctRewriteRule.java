@@ -125,7 +125,7 @@ public class GroupByCountDistinctRewriteRule extends TransformationRule {
         }
 
         groupBy.add(distinctColumns.get(0).getId());
-        return groupBy.containsAll(scan.getDistributionSpec().getShuffleColumns());
+        return false;
     }
 
     @Override
