@@ -40,7 +40,16 @@ public class PhysicalNoCTEOperator extends PhysicalOperator {
 
     @Override
     public boolean equals(Object o) {
-        return false;
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        PhysicalNoCTEOperator that = (PhysicalNoCTEOperator) o;
+
+        return cteId == that.cteId;
     }
 
     @Override
