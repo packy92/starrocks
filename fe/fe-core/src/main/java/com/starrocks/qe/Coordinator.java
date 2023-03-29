@@ -34,6 +34,7 @@
 
 package com.starrocks.qe;
 
+import com.carrotsearch.sizeof.RamUsageEstimator;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -1048,7 +1049,7 @@ public class Coordinator {
                     handleErrorBackendExecState(errorBackendExecState, errorCode, errMessage);
                 }
             }
-
+            System.out.println(RamUsageEstimator.sizeOf(backendExecStates));
             attachInstanceProfileToFragmentProfile();
         } finally {
             unlock();
