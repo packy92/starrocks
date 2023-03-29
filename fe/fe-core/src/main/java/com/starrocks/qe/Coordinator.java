@@ -667,8 +667,6 @@ public class Coordinator {
                         TNetworkAddress host = instanceId2Host.get(tParam.params.fragment_instance_id);
                         BackendExecState execState = new BackendExecState(fragment.getFragmentId(), host,
                                 profileFragmentId, tParam, coordinatorPreprocessor.getAddressToBackendID());
-                        LOG.info("fragment id: {}, mem usage: {}", fragment.getFragmentId(),
-                                RamUsageEstimator.humanSizeOf(execState));
                         backendExecStates.put(tParam.backend_num, execState);
                         if (needCheckBackendState) {
                             needCheckBackendExecStates.add(execState);
@@ -971,6 +969,8 @@ public class Coordinator {
                                     coordinatorPreprocessor.getAddressToBackendID());
                             execStates.add(execState);
                             backendExecStates.put(tUniquePrams.backend_num, execState);
+                            LOG.info("fragment id: {}, mem usage: {}", fragment.getFragmentId(),
+                                    RamUsageEstimator.humanSizeOf(execState));
                             if (needCheckBackendState) {
                                 needCheckBackendExecStates.add(execState);
                                 if (LOG.isDebugEnabled()) {
