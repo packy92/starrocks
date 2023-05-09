@@ -294,8 +294,10 @@ public class ConnectProcessor {
             try {
                 stmts = com.starrocks.sql.parser.SqlParser.parse(originStmt, ctx.getSessionVariable().getSqlMode());
             } catch (ParsingException parsingException) {
+                LOG.warn("Found ParsingException, sql: {}", originStmt);
                 throw new AnalysisException(parsingException.getMessage());
             } catch (Exception e) {
+                LOG.warn("Found Exception, sql: {}", originStmt);
                 stmts = analyze(originStmt);
             }
 
