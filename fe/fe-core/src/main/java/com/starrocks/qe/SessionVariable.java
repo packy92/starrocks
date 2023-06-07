@@ -234,6 +234,10 @@ public class SessionVariable implements Serializable, Writable, Cloneable {
 
     public static final String ENABLE_STRICT_TYPE = "enable_strict_type";
 
+    public static final String SCAN_OR_TO_UNION_LIMIT = "scan_or_to_union_limit";
+
+    public static final String SCAN_OR_TO_UNION_THRESHOLD = "scan_or_to_union_threshold";
+
     // Limitations
     // mem limit can't smaller than bufferpool's default page size
     public static final int MIN_EXEC_MEM_LIMIT = 2097152;
@@ -598,6 +602,12 @@ public class SessionVariable implements Serializable, Writable, Cloneable {
 
     @VarAttr(name = ENABLE_STRICT_TYPE, flag = VariableMgr.INVISIBLE)
     private boolean enableStrictType = false;
+
+    @VarAttr(name = SCAN_OR_TO_UNION_LIMIT, flag = VariableMgr.INVISIBLE)
+    private int scanOrToUnionLimit = 4;
+
+    @VarAttr(name = SCAN_OR_TO_UNION_THRESHOLD, flag = VariableMgr.INVISIBLE)
+    private long scanOrToUnionThreshold = 50000000;
 
     public int getStatisticCollectParallelism() {
         return statisticCollectParallelism;
@@ -1073,6 +1083,22 @@ public class SessionVariable implements Serializable, Writable, Cloneable {
 
     public void setEnableStrictType(boolean val) {
         this.enableStrictType = val;
+    }
+
+    public int getScanOrToUnionLimit() {
+        return scanOrToUnionLimit;
+    }
+
+    public void setScanOrToUnionLimit(int scanOrToUnionLimit) {
+        this.scanOrToUnionLimit = scanOrToUnionLimit;
+    }
+
+    public long getScanOrToUnionThreshold() {
+        return scanOrToUnionThreshold;
+    }
+
+    public void setScanOrToUnionThreshold(long scanOrToUnionThreshold) {
+        this.scanOrToUnionThreshold = scanOrToUnionThreshold;
     }
 
     // Serialize to thrift object
