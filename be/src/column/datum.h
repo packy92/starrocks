@@ -100,8 +100,7 @@ public:
         } else if constexpr (std::is_unsigned_v<T>) {
             return reinterpret_cast<const T&>(std::get<std::make_signed_t<T>>(_value));
         } else {
-            const std::type_info& typeInfo = _value.index();
-            const char* typeName = typeInfo.name();
+            cout << "Index: " << _value.index() << endl;
             return std::get<T>(_value);
         }
     }
