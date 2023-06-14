@@ -31,9 +31,12 @@ ColumnPredicate* PredicateParser::parse_thrift_cond(const TCondition& condition)
     auto&& type_info = get_type_info(type, precision, scale);
 
     ColumnPredicate* pred = nullptr;
+    std::cout << condition.condition_op << std::endl;
     std::cout << "col name: " << condition.column_name << std::endl;
     std::cout << "col index: " << index << std::endl;
     std::cout << "col type: " << col.type() << std::endl;
+    std::cout << "type_info: " << type_info->type() << std::endl;
+    std::cout << "====" << std::endl;
 
     if ((condition.condition_op == "*=" || condition.condition_op == "=") && condition.condition_values.size() == 1) {
         pred = new_column_eq_predicate(type_info, index, condition.condition_values[0]);
