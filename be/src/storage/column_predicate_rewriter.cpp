@@ -61,14 +61,13 @@ StatusOr<bool> ColumnPredicateRewriter::_rewrite_predicate(ObjectPool* pool, con
         const ColumnPredicate* pred = preds[i];
         if (PredicateType::kEQ == pred->type()) {
             Datum value = pred->value();
+            int code;
             try {
-                const Slice& tmp = value.get_slice();
+                code = _column_iterators[cid]->dict_lookup(value.get_slice());
             } catch (const std::bad_variant_access& ex) {
                 std::cout << "col Id: " << pred->column_id() << std::endl;
-                std::cout << "Predicate Type: " << typeid(*pred).name() << std::endl;
                 std::cout << "Caught std::bad_variant_access exception: " << ex.what() << std::endl;
             }
-            int code = _column_iterators[cid]->dict_lookup(value.get_slice());
             if (code < 0) {
                 // predicate always false, clear scan range, this will make `get_next` return EOF directly.
                 _scan_range = _scan_range.intersection(SparseRange());
