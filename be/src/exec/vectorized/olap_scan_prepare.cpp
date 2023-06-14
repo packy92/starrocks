@@ -542,8 +542,6 @@ Status OlapScanConjunctsManager::normalize_conjuncts() {
     // TODO(zhuming): if any of the normalized column range is empty, we can know that
     // no row will be selected anymore and can return EOF directly.
     for (auto& slot : tuple_desc->decoded_slots()) {
-        std::cout << "slot id: " << slot->id() << std::endl;
-        std::cout << "slot type: " << slot->type().type << std::endl;
         type_dispatch_predicate<std::nullptr_t>(slot->type().type, false, ColumnRangeBuilder(), this, slot,
                                                 &column_value_ranges);
     }
