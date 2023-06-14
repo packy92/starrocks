@@ -64,6 +64,7 @@ StatusOr<bool> ColumnPredicateRewriter::_rewrite_predicate(ObjectPool* pool, con
             try {
                 const Slice& tmp = value.get_slice();
             } catch (const std::bad_variant_access& ex) {
+                std::cout << "col Id: " << pred->column_id() << std::endl;
                 std::cout << "Predicate Type: " << typeid(*pred).name() << std::endl;
                 std::cout << "Caught std::bad_variant_access exception: " << ex.what() << std::endl;
             }
