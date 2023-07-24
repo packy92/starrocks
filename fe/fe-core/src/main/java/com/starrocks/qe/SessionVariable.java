@@ -503,6 +503,8 @@ public class SessionVariable implements Serializable, Writable, Cloneable {
 
     public static final String CBO_PUSHDOWN_TOPN_LIMIT = "cbo_push_down_topn_limit";
 
+    public static final String AUDIT_EXECUTE_STMT = "audit_execute_stmt";
+
     public static final List<String> DEPRECATED_VARIABLES = ImmutableList.<String>builder()
             .add(CODEGEN_LEVEL)
             .add(MAX_EXECUTION_TIME)
@@ -1300,6 +1302,9 @@ public class SessionVariable implements Serializable, Writable, Cloneable {
 
     @VarAttr(name = HIVE_TEMP_STAGING_DIR)
     private String hiveTempStagingDir = "/tmp/starrocks";
+
+    @VariableMgr.VarAttr(name = AUDIT_EXECUTE_STMT)
+    private boolean auditExecuteStmt = false;
 
     private int exprChildrenLimit = -1;
 
@@ -2485,6 +2490,10 @@ public class SessionVariable implements Serializable, Writable, Cloneable {
 
     public void setEnableCountStarOptimization(boolean v) {
         enableCountStarOptimization = v;
+    }
+
+    public boolean isAuditExecuteStmt() {
+        return auditExecuteStmt;
     }
 
     // Serialize to thrift object
