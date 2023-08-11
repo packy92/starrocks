@@ -75,12 +75,19 @@ public class DistributionDisjointSet {
             LOG.info("may block sql: ", dumpInfo == null ? "" : dumpInfo.getOriginStmt());
         }
 
-        while (!parent.get(root).equals(root)) {
+        int index = 0;
+        while (parent.get(root) != root) {
             root = parent.get(root);
+            index++;
+            if (index == 100) {
+                LOG.info("not found a root, map is : {}", parent);
+                QueryDumpInfo dumpInfo = (QueryDumpInfo) ConnectContext.get().getDumpInfo();
+                LOG.info("may block sql: ", dumpInfo == null ? "" : dumpInfo.getOriginStmt());
+            }
         }
 
         // path compress
-        while (!col.equals(root)) {
+        while (col != root) {
             DistributionCol next = parent.get(col);
             parent.put(col, root);
             col = next;
