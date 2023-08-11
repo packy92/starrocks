@@ -70,7 +70,7 @@ public class DistributionDisjointSet {
         }
 
         if (!isExist) {
-            LOG.info("not found distribution col: {}", col);
+            LOG.info("not found a root, map is : {}", parent);
             QueryDumpInfo dumpInfo = (QueryDumpInfo) ConnectContext.get().getDumpInfo();
             LOG.info("may block sql: ", dumpInfo == null ? "" : dumpInfo.getOriginStmt());
         }
