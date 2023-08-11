@@ -118,6 +118,6 @@ public class DistributionCol {
 
     @Override
     public String toString() {
-        return colId + "(" + nullStrict + ")";
+        return colId + "(null strict: " + nullStrict + ", agg strict: " + aggStrict + ")";
     }
 }

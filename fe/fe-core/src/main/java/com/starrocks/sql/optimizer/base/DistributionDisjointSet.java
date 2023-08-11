@@ -15,6 +15,10 @@
 package com.starrocks.sql.optimizer.base;
 
 import com.google.common.collect.Maps;
+import com.starrocks.qe.ConnectContext;
+import com.starrocks.sql.optimizer.dump.QueryDumpInfo;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -37,6 +41,8 @@ import java.util.function.Function;
 // is a suitable approach.
 public class DistributionDisjointSet {
 
+    private static final Logger LOG = LogManager.getLogger(DistributionDisjointSet.class);
+
     private Map<DistributionCol, DistributionCol> parent;
 
     public DistributionDisjointSet() {
@@ -55,12 +61,26 @@ public class DistributionDisjointSet {
         parent.computeIfAbsent(col, Function.identity());
 
         DistributionCol root = col;
-        while (parent.get(root) != root) {
+        boolean isExist = false;
+        for (Map.Entry<DistributionCol, DistributionCol> entry : parent.entrySet()) {
+            if (entry.getKey() == entry.getValue()) {
+                isExist = true;
+                break;
+            }
+        }
+
+        if (!isExist) {
+            LOG.info("not found distribution col: {}", col);
+            QueryDumpInfo dumpInfo = (QueryDumpInfo) ConnectContext.get().getDumpInfo();
+            LOG.info("may block sql: ", dumpInfo == null ? "" : dumpInfo.getOriginStmt());
+        }
+
+        while (!parent.get(root).equals(root)) {
             root = parent.get(root);
         }
 
         // path compress
-        while (col != root) {
+        while (!col.equals(root)) {
             DistributionCol next = parent.get(col);
             parent.put(col, root);
             col = next;
