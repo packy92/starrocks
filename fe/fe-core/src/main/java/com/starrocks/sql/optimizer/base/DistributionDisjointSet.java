@@ -16,7 +16,6 @@ package com.starrocks.sql.optimizer.base;
 
 import com.google.common.collect.Maps;
 import com.starrocks.qe.ConnectContext;
-import com.starrocks.sql.optimizer.dump.QueryDumpInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -98,6 +97,16 @@ public class DistributionDisjointSet {
             DistributionCol next = parent.get(col);
             parent.put(col, root);
             col = next;
+            index++;
+            String sql = "";
+            if (index > 500) {
+                LOG.info("too many nodes, map is : {}", parent);
+                if (ConnectContext.get().getExecutor().getParsedStmt() != null) {
+                    sql = ConnectContext.get().getExecutor().getParsedStmt().getOrigStmt().originStmt;
+                }
+                LOG.info("may block sql: ", sql);
+                break;
+            }
         }
 
         return root;
