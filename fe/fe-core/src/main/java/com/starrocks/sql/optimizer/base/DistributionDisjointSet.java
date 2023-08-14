@@ -82,32 +82,20 @@ public class DistributionDisjointSet {
             root = parent.get(root);
             index++;
             String sql = "";
-            if (index > 500) {
+            if (index == 100) {
                 LOG.info("too many nodes, map is : {}", parent);
                 if (ConnectContext.get().getExecutor().getParsedStmt() != null) {
                     sql = ConnectContext.get().getExecutor().getParsedStmt().getOrigStmt().originStmt;
                 }
                 LOG.info("may block sql: {}", sql);
-                break;
             }
         }
 
         // path compress
-        index = 0;
         while (col != root) {
             DistributionCol next = parent.get(col);
             parent.put(col, root);
             col = next;
-            index++;
-            String sql = "";
-            if (index > 500) {
-                LOG.info("too many nodes, map is : {}", parent);
-                if (ConnectContext.get().getExecutor().getParsedStmt() != null) {
-                    sql = ConnectContext.get().getExecutor().getParsedStmt().getOrigStmt().originStmt;
-                }
-                LOG.info("may block sql: {}", sql);
-                break;
-            }
         }
 
         return root;
