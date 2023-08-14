@@ -71,18 +71,25 @@ public class DistributionDisjointSet {
 
         if (!isExist) {
             LOG.info("not found a root, map is : {}", parent);
-            QueryDumpInfo dumpInfo = (QueryDumpInfo) ConnectContext.get().getDumpInfo();
-            LOG.info("may block sql: ", dumpInfo == null ? "" : dumpInfo.getOriginStmt());
+            String sql = "";
+            if (ConnectContext.get().getExecutor().getParsedStmt() != null) {
+                sql = ConnectContext.get().getExecutor().getParsedStmt().getOrigStmt().originStmt;
+            }
+            LOG.info("may block sql: ", sql);
         }
 
         int index = 0;
         while (parent.get(root) != root) {
             root = parent.get(root);
             index++;
-            if (index == 100) {
-                LOG.info("not found a root, map is : {}", parent);
-                QueryDumpInfo dumpInfo = (QueryDumpInfo) ConnectContext.get().getDumpInfo();
-                LOG.info("may block sql: ", dumpInfo == null ? "" : dumpInfo.getOriginStmt());
+            String sql = "";
+            if (index > 500) {
+                LOG.info("too many nodes, map is : {}", parent);
+                if (ConnectContext.get().getExecutor().getParsedStmt() != null) {
+                    sql = ConnectContext.get().getExecutor().getParsedStmt().getOrigStmt().originStmt;
+                }
+                LOG.info("may block sql: ", sql);
+                break;
             }
         }
 
