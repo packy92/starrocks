@@ -74,7 +74,7 @@ public class DistributionDisjointSet {
             if (ConnectContext.get().getExecutor().getParsedStmt() != null) {
                 sql = ConnectContext.get().getExecutor().getParsedStmt().getOrigStmt().originStmt;
             }
-            LOG.info("may block sql: ", sql);
+            LOG.info("may block sql: {}", sql);
         }
 
         int index = 0;
@@ -87,12 +87,13 @@ public class DistributionDisjointSet {
                 if (ConnectContext.get().getExecutor().getParsedStmt() != null) {
                     sql = ConnectContext.get().getExecutor().getParsedStmt().getOrigStmt().originStmt;
                 }
-                LOG.info("may block sql: ", sql);
+                LOG.info("may block sql: {}", sql);
                 break;
             }
         }
 
         // path compress
+        index = 0;
         while (col != root) {
             DistributionCol next = parent.get(col);
             parent.put(col, root);
@@ -104,7 +105,7 @@ public class DistributionDisjointSet {
                 if (ConnectContext.get().getExecutor().getParsedStmt() != null) {
                     sql = ConnectContext.get().getExecutor().getParsedStmt().getOrigStmt().originStmt;
                 }
-                LOG.info("may block sql: ", sql);
+                LOG.info("may block sql: {}", sql);
                 break;
             }
         }
