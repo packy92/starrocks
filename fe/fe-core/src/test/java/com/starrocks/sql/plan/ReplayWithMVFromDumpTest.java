@@ -106,6 +106,7 @@ public class ReplayWithMVFromDumpTest extends ReplayFromDumpTestBase {
         FeConstants.isReplayFromQueryDump = false;
     }
 
+
     @Test
     public void testMVJoin() throws Exception {
         connectContext.getSessionVariable().setMaterializedViewRewriteMode("force");
