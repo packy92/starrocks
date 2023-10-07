@@ -34,6 +34,7 @@ import com.starrocks.connector.exception.StarRocksConnectorException;
 import com.starrocks.connector.iceberg.cost.IcebergMetricsReporter;
 import com.starrocks.connector.iceberg.cost.IcebergStatisticProvider;
 import com.starrocks.credential.CloudConfiguration;
+import com.starrocks.qe.ConnectContext;
 import com.starrocks.sql.PlannerProfile;
 import com.starrocks.sql.ast.CreateTableStmt;
 import com.starrocks.sql.ast.DropTableStmt;
@@ -249,7 +250,14 @@ public class IcebergMetadata implements ConnectorMetadata {
 
             ImmutableList.Builder<FileScanTask> builder = ImmutableList.builder();
             org.apache.iceberg.Table nativeTable = table.getNativeTable();
-            TableScan scan = nativeTable.newScan().useSnapshot(snapshotId).includeColumnStats();
+            TableScan scan;
+
+            if (ConnectContext.get().getSessionVariable().enableHiveColumnStats()) {
+                scan = nativeTable.newScan().useSnapshot(snapshotId).includeColumnStats();
+            } else {
+                scan = nativeTable.newScan().useSnapshot(snapshotId);
+            }
+
             if (icebergPredicate.op() != Expression.Operation.TRUE) {
                 scan = scan.filter(icebergPredicate);
             }
