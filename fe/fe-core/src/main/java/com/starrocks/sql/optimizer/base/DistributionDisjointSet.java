@@ -52,26 +52,32 @@ public class DistributionDisjointSet {
     }
 
     public DistributionCol find(DistributionCol col) {
-        parent.computeIfAbsent(col, Function.identity());
-
-        DistributionCol root = col;
         try {
-            while (!parent.get(root).equals(root)) {
-                root = parent.get(root);
+            parent.computeIfAbsent(col, Function.identity());
+
+            DistributionCol root = col;
+            try {
+                while (!parent.get(root).equals(root)) {
+                    root = parent.get(root);
+                }
+            } catch (Throwable e) {
+                System.out.println(e.getMessage());
             }
+
+
+            // path compress
+            while (!col.equals(root)) {
+                DistributionCol next = parent.get(col);
+                parent.put(col, root);
+                col = next;
+            }
+
+            return root;
         } catch (Throwable e) {
-            System.out.println(e.getMessage());
+            int a = 1;
+            throw e;
         }
 
-
-        // path compress
-        while (!col.equals(root)) {
-            DistributionCol next = parent.get(col);
-            parent.put(col, root);
-            col = next;
-        }
-
-        return root;
     }
 
     public void union(DistributionCol col1, DistributionCol col2) {
