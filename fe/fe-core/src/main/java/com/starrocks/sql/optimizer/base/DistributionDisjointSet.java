@@ -55,9 +55,14 @@ public class DistributionDisjointSet {
         parent.computeIfAbsent(col, Function.identity());
 
         DistributionCol root = col;
-        while (!parent.get(root).equals(root)) {
-            root = parent.get(root);
+        try {
+            while (!parent.get(root).equals(root)) {
+                root = parent.get(root);
+            }
+        } catch (Throwable e) {
+            System.out.println(e.getMessage());
         }
+
 
         // path compress
         while (!col.equals(root)) {
