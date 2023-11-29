@@ -130,8 +130,7 @@ public final class LogicalOlapScanOperator extends LogicalScanOperator {
 
     @Override
     public boolean isEmptyOutputRows() {
-        return selectedTabletId == null || selectedTabletId.isEmpty() ||
-                selectedPartitionId == null || selectedPartitionId.isEmpty();
+        return false;
     }
 
     public List<Long> getHintsTabletIds() {
