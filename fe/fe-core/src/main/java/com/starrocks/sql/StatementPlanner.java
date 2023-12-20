@@ -154,6 +154,15 @@ public class StatementPlanner {
         } else {
             plan = createQueryPlanWithReTry(queryStmt, session, resultSinkType);
         }
+        int sleep = session.getSessionVariable().getBigQueryProfileSecondThreshold();
+        if (sleep > 0) {
+            try {
+                Thread.sleep(sleep * 1000L);
+            } catch (Exception e) {
+                System.out.println("end");
+            }
+
+        }
         setOutfileSink(queryStmt, plan);
         return plan;
     }
