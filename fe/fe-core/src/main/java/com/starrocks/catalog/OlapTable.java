@@ -81,6 +81,7 @@ import com.starrocks.common.util.concurrent.MarkedCountDownLatch;
 import com.starrocks.lake.DataCacheInfo;
 import com.starrocks.lake.StorageInfo;
 import com.starrocks.persist.ColocatePersistInfo;
+import com.starrocks.qe.ConnectContext;
 import com.starrocks.qe.OriginStatement;
 import com.starrocks.server.GlobalStateMgr;
 import com.starrocks.server.RunMode;
@@ -320,13 +321,17 @@ public class OlapTable extends Table {
         olapTable.nameToColumn = Maps.newHashMap(this.nameToColumn);
         olapTable.state = this.state;
         olapTable.indexNameToId = Maps.newHashMap(this.indexNameToId);
-        olapTable.indexIdToMeta = Maps.newHashMap();
-        // fast schema evolution will modify indexIdToMeta in-place, hence we need shallow copy it here.
-        for (Map.Entry<Long, MaterializedIndexMeta> entry : indexIdToMeta.entrySet()) {
-            olapTable.indexIdToMeta.put(entry.getKey(), entry.getValue().shallowCopy());
+        if (ConnectContext.get() != null && ConnectContext.get().getSessionVariable().getBigQueryProfileSecondThreshold() > 10) {
+            olapTable.indexIdToMeta = Maps.newHashMap();
+            // fast schema evolution will modify indexIdToMeta in-place, hence we need shallow copy it here.
+            for (Map.Entry<Long, MaterializedIndexMeta> entry : indexIdToMeta.entrySet()) {
+                olapTable.indexIdToMeta.put(entry.getKey(), entry.getValue().shallowCopy());
+            }
+            olapTable.indexes = this.indexes.shallowCopy();
+            olapTable.bfColumns = Sets.newHashSet(bfColumns);
+        } else {
+            olapTable.indexIdToMeta = Maps.newHashMap(this.indexIdToMeta);
         }
-        olapTable.indexes = this.indexes.shallowCopy();
-        olapTable.bfColumns = Sets.newHashSet(bfColumns);
 
         olapTable.keysType = this.keysType;
         if (this.relatedMaterializedViews != null) {
