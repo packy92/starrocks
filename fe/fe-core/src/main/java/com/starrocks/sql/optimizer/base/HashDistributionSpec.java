@@ -122,21 +122,6 @@ public class HashDistributionSpec extends DistributionSpec {
         }
 
         HashDistributionSpec other = (HashDistributionSpec) spec;
-        HashDistributionDesc.SourceType thisSourceType = hashDistributionDesc.getSourceType();
-
-        // check shuffle_local equivalentDescriptor
-//        if (thisSourceType == HashDistributionDesc.SourceType.LOCAL) {
-//            ColocateTableIndex colocateIndex = GlobalStateMgr.getCurrentColocateIndex();
-//            long tableId = equivDesc.getTableId();
-//            // Disable use colocate/bucket join when table with empty partition
-//            boolean satisfyColocate = equivDesc.isSinglePartition() || (colocateIndex.isColocateTable(tableId) &&
-//                    !colocateIndex.isGroupUnstable(colocateIndex.getGroup(tableId)) &&
-//                    !equivDesc.isEmptyPartition());
-//            if (!satisfyColocate) {
-//                return false;
-//            }
-//        }
-
         return hashDistributionDesc.isSatisfy(other.hashDistributionDesc) || isJoinEqColumnsCompatible(other);
     }
 
