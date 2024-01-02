@@ -76,7 +76,7 @@ public class FeConstants {
     // set to true when replay from query dump
     public static boolean isReplayFromQueryDump = false;
     // set false to resolve ut
-    public static boolean enablePruneEmptyOutputScan = true;
+    public static boolean enablePruneEmptyOutputScan = false;
     public static boolean showJoinLocalShuffleInExplain = true;
 
     // Every 3GB, corresponds a new tablet. Assume compression ratio equals to 3,
