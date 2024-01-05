@@ -483,7 +483,7 @@ public class ExecutionDAG {
                     // dest bucket may be pruned, these bucket dest should be set an invalid value
                     // and will be deal with in BE's DataStreamSender
                     FragmentInstance temp = destExecFragment.getInstances().get(0);
-                    ComputeNode worker = destInstance.getWorker();
+                    ComputeNode worker = temp.getWorker();
                     dest.setFragment_instance_id(temp.getInstanceId());
                     // NOTE(zc): can be removed in version 4.0
                     dest.setDeprecated_server(worker.getAddress());
