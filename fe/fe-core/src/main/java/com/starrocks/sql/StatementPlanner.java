@@ -98,7 +98,7 @@ public class StatementPlanner {
             try {
                 beginTransaction((DmlStmt) stmt, session);
             } catch (RunningTxnExceedException | LabelAlreadyUsedException | DuplicatedRequestException | AnalysisException |
-                     BeginTransactionException e) {
+                    BeginTransactionException e) {
                 throw new SemanticException("fail to begin transaction. " + e.getMessage());
             }
         }
@@ -213,10 +213,13 @@ public class StatementPlanner {
              * currently only used in Spark/Flink Connector
              * Because the connector sends only simple queries, it only needs to remove the output fragment
              */
-            return PlanFragmentBuilder.createPhysicalPlan(
+            ExecPlan plan = PlanFragmentBuilder.createPhysicalPlan(
                     optimizedPlan, session, logicalPlan.getOutputColumn(), columnRefFactory, colNames,
                     resultSinkType,
                     !session.getSessionVariable().isSingleNodeExecPlan());
+            plan.setLogicalPlan(logicalPlan);
+            plan.setColumnRefFactory(columnRefFactory);
+            return plan;
         }
     }
 
@@ -290,11 +293,14 @@ public class StatementPlanner {
                         t.lastVersionUpdateEndTime.get() < buildFragmentStartTime &&
                                 t.lastVersionUpdateEndTime.get() >= t.lastVersionUpdateStartTime.get());
                 if (isSchemaValid) {
+                    plan.setLogicalPlan(logicalPlan);
+                    plan.setColumnRefFactory(columnRefFactory);
                     return plan;
                 }
 
                 // if exists table is applying visible log, we wait 10 ms to retry
-                if (olapTables.stream().anyMatch(t -> t.lastVersionUpdateStartTime.get() > t.lastVersionUpdateEndTime.get())) {
+                if (olapTables.stream()
+                        .anyMatch(t -> t.lastVersionUpdateStartTime.get() > t.lastVersionUpdateEndTime.get())) {
                     try (Timer timer = Tracers.watchScope("PlanRetrySleepTime")) {
                         Thread.sleep(10);
                     } catch (InterruptedException e) {
@@ -322,7 +328,8 @@ public class StatementPlanner {
         }
     }
 
-    public static Set<OlapTable> reAnalyzeStmt(StatementBase queryStmt, ConnectContext session, PlannerMetaLocker locker) {
+    public static Set<OlapTable> reAnalyzeStmt(StatementBase queryStmt, ConnectContext session,
+                                               PlannerMetaLocker locker) {
         try {
             lock(locker);
             // analyze to obtain the latest table from metadata

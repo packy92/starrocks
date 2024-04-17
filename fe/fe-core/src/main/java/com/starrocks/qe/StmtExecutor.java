@@ -114,6 +114,7 @@ import com.starrocks.qe.scheduler.Coordinator;
 import com.starrocks.qe.scheduler.FeExecuteCoordinator;
 import com.starrocks.server.GlobalStateMgr;
 import com.starrocks.sql.ExplainAnalyzer;
+import com.starrocks.sql.PrepareStmtPlanner;
 import com.starrocks.sql.StatementPlanner;
 import com.starrocks.sql.analyzer.AnalyzerUtils;
 import com.starrocks.sql.analyzer.AstToStringBuilder;
@@ -507,7 +508,7 @@ public class StmtExecutor {
                         parsedStmt = prepareStmt.assignValues(executeStmt.getParamsExpr());
                         parsedStmt.setOrigStmt(originStmt);
                         try {
-                            execPlan = StatementPlanner.plan(parsedStmt, context);
+                            execPlan = PrepareStmtPlanner.plan(executeStmt, parsedStmt, context);
                         } catch (SemanticException e) {
                             if (e.getMessage().contains("Unknown partition")) {
                                 throw new SemanticException(e.getMessage() +
@@ -793,7 +794,8 @@ public class StmtExecutor {
     private boolean createTableCreatedByCTAS(CreateTableAsSelectStmt stmt) throws Exception {
         try {
             if (stmt instanceof CreateTemporaryTableAsSelectStmt) {
-                CreateTemporaryTableStmt createTemporaryTableStmt = (CreateTemporaryTableStmt) stmt.getCreateTableStmt();
+                CreateTemporaryTableStmt createTemporaryTableStmt =
+                        (CreateTemporaryTableStmt) stmt.getCreateTableStmt();
                 createTemporaryTableStmt.setSessionId(context.getSessionId());
                 return context.getGlobalStateMgr().getMetadataMgr().createTemporaryTable(createTemporaryTableStmt);
             } else {
@@ -1231,10 +1233,10 @@ public class StmtExecutor {
         if (analyzeStmt.isExternal()) {
             if (analyzeStmt.getAnalyzeTypeDesc().isHistogram()) {
                 statisticExecutor.collectStatistics(statsConnectCtx,
-                    new ExternalHistogramStatisticsCollectJob(analyzeStmt.getTableName().getCatalog(),
-                            db, table, analyzeStmt.getColumnNames(), analyzeStmt.getColumnTypes(),
-                            StatsConstants.AnalyzeType.HISTOGRAM, StatsConstants.ScheduleType.ONCE,
-                            analyzeStmt.getProperties()),
+                        new ExternalHistogramStatisticsCollectJob(analyzeStmt.getTableName().getCatalog(),
+                                db, table, analyzeStmt.getColumnNames(), analyzeStmt.getColumnTypes(),
+                                StatsConstants.AnalyzeType.HISTOGRAM, StatsConstants.ScheduleType.ONCE,
+                                analyzeStmt.getProperties()),
                         analyzeStatus,
                         false);
             } else {
@@ -1541,7 +1543,8 @@ public class StmtExecutor {
 
     // Process show statement
     private void handleShow() throws IOException, AnalysisException, DdlException {
-        ShowResultSet resultSet = GlobalStateMgr.getCurrentState().getShowExecutor().execute((ShowStmt) parsedStmt, context);
+        ShowResultSet resultSet =
+                GlobalStateMgr.getCurrentState().getShowExecutor().execute((ShowStmt) parsedStmt, context);
         if (resultSet == null) {
             // state changed in execute
             return;
@@ -1612,7 +1615,6 @@ public class StmtExecutor {
         }
         return explainString;
     }
-
 
     private void handleDdlStmt() throws DdlException {
         try {
