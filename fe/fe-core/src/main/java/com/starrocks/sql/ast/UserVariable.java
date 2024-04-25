@@ -18,7 +18,6 @@ import com.google.common.base.Preconditions;
 import com.starrocks.analysis.Expr;
 import com.starrocks.analysis.LiteralExpr;
 import com.starrocks.analysis.NullLiteral;
-import com.starrocks.analysis.StringLiteral;
 import com.starrocks.analysis.Subquery;
 import com.starrocks.catalog.Type;
 import com.starrocks.common.AnalysisException;
@@ -26,12 +25,14 @@ import com.starrocks.common.Pair;
 import com.starrocks.common.Status;
 import com.starrocks.qe.ConnectContext;
 import com.starrocks.qe.QueryState;
+import com.starrocks.qe.SqlModeHelper;
 import com.starrocks.qe.StmtExecutor;
 import com.starrocks.sql.StatementPlanner;
 import com.starrocks.sql.analyzer.AstToSQLBuilder;
 import com.starrocks.sql.analyzer.SemanticException;
 import com.starrocks.sql.common.TypeManager;
 import com.starrocks.sql.parser.NodePosition;
+import com.starrocks.sql.parser.SqlParser;
 import com.starrocks.sql.plan.ExecPlan;
 import com.starrocks.thrift.TResultBatch;
 import com.starrocks.thrift.TResultSinkType;
@@ -145,7 +146,7 @@ public class UserVariable extends SetListItem {
             }
         } else if (targetType.isArrayType()) {
             //build a cast(string to array) expr
-            return TypeManager.addCastExpr(new StringLiteral(value), targetType);
+            return TypeManager.addCastExpr(SqlParser.parseSqlToExpr(value, SqlModeHelper.MODE_DEFAULT), targetType);
         } else {
             throw new SemanticException("Unsupported type: %s in user variable", targetType);
         }
