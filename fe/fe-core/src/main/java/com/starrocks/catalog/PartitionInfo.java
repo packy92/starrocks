@@ -165,6 +165,7 @@ public class PartitionInfo implements Cloneable, Writable, GsonPreProcessable, G
         idToDataProperty.remove(partitionId);
         idToReplicationNum.remove(partitionId);
         idToInMemory.remove(partitionId);
+        GlobalStateMgr.getCurrentState().getAnalyzeManager().dropPartition(partitionId);
     }
 
     public void addPartition(long partitionId, DataProperty dataProperty,

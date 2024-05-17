@@ -109,6 +109,12 @@ public class StatisticExecutor {
         return executeDML(statsConnectCtx, sql);
     }
 
+    public boolean cleanStaleColumnStatistics(ConnectContext statsConnectCtx, List<Long> tables, LocalDateTime time) {
+        String sql = StatisticSQLBuilder.buildCleanStaleColStatsSQL(tables, time);
+        LOG.debug("Expire stale column statistic SQL: {}", sql);
+        return executeDML(statsConnectCtx, sql);
+    }
+
     public List<TStatisticData> queryHistogram(ConnectContext statsConnectCtx, Long tableId, List<String> columnNames) {
         String sql = StatisticSQLBuilder.buildQueryHistogramStatisticsSQL(tableId, columnNames);
         return executeStatisticDQL(statsConnectCtx, sql);

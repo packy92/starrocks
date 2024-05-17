@@ -10,10 +10,12 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
 import java.io.StringWriter;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.starrocks.common.util.DateUtils.DATE_TIME_FORMATTER;
 import static com.starrocks.statistic.StatsConstants.FULL_STATISTICS_TABLE_NAME;
 import static com.starrocks.statistic.StatsConstants.SAMPLE_STATISTICS_TABLE_NAME;
 import static com.starrocks.statistic.StatsConstants.STATISTIC_DATA_VERSION;
@@ -118,6 +120,15 @@ public class StatisticSQLBuilder {
         String pids = partitions.stream().map(String::valueOf).collect(Collectors.joining(", "));
         sql.append(" TABLE_ID IN (").append(tids).append(")");
         sql.append(" AND PARTITION_ID NOT IN (").append(pids).append(")");
+        return sql.toString();
+    }
+
+    public static String buildCleanStaleColStatsSQL(List<Long> tables, LocalDateTime time) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("DELETE FROM " + FULL_STATISTICS_TABLE_NAME + " WHERE");
+        String tids = tables.stream().map(String::valueOf).collect(Collectors.joining(", "));
+        sql.append(" TABLE_ID IN (").append(tids).append(")");
+        sql.append(" AND UPDATE_TIME <= ").append("'").append(time.format(DATE_TIME_FORMATTER)).append("'");
         return sql.toString();
     }
 
