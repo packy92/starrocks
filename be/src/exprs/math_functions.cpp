@@ -853,7 +853,7 @@ StatusOr<ColumnPtr> MathFunctions::cosine_similarity(FunctionContext* context, c
         }
 
         if constexpr (!isNorm) {
-            result_value = sum / (std::sqrt(base_sum) * std::sqrt(target_sum));
+            result_value = std::sqrt(sum * sum / (base_sum * target_sum));
         } else {
             result_value = sum;
         }
