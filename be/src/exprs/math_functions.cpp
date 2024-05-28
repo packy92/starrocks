@@ -843,32 +843,7 @@ StatusOr<ColumnPtr> MathFunctions::cosine_similarity(FunctionContext* context, c
         size_t dim_size = target_offset[i + 1] - target_offset[i];
         CppType result_value = 0;
         size_t j = 0;
-#ifdef __AVX2__
-        if (std::is_same_v<CppType, float>) {
-            __m256 sum_vec = _mm256_setzero_ps();
-            __m256 base_sum_vec = _mm256_setzero_ps();
-            __m256 target_sum_vec = _mm256_setzero_ps();
-            for (; j + 7 < dim_size; j += 8) {
-                __m256 base_data_vec = _mm256_loadu_ps(base_data + j);
-                __m256 target_data_vec = _mm256_loadu_ps(target_data + j);
 
-                __m256 mul_vec = _mm256_mul_ps(base_data_vec, target_data_vec);
-                sum_vec = _mm256_add_ps(sum_vec, mul_vec);
-
-                if constexpr (!isNorm) {
-                    __m256 base_mul_vec = _mm256_mul_ps(base_data_vec, base_data_vec);
-                    base_sum_vec = _mm256_add_ps(base_sum_vec, base_mul_vec);
-                    __m256 target_mul_vec = _mm256_mul_ps(target_data_vec, target_data_vec);
-                    target_sum_vec = _mm256_add_ps(target_sum_vec, target_mul_vec);
-                }
-            }
-            sum += sum_m256(sum_vec);
-            if constexpr (!isNorm) {
-                base_sum += sum_m256(base_sum_vec);
-                target_sum += sum_m256(target_sum_vec);
-            }
-        }
-#endif
         for (; j < dim_size; j++) {
             sum += base_data[j] * target_data[j];
             if constexpr (!isNorm) {
