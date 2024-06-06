@@ -301,6 +301,7 @@ public class StatementPlanner {
                         !session.getSessionVariable().isSingleNodeExecPlan());
                 isSchemaValid = olapTables.stream().noneMatch(t -> t.lastSchemaUpdateTime.get() > planStartTime);
 
+                Thread.sleep(50);
                 isSchemaValid = isSchemaValid && olapTables.stream().allMatch(t ->
                         t.lastVersionUpdateEndTime.get() < buildFragmentStartTime &&
                                 t.lastVersionUpdateEndTime.get() >= t.lastVersionUpdateStartTime.get());
@@ -309,7 +310,6 @@ public class StatementPlanner {
                     plan.setColumnRefFactory(columnRefFactory);
                     return plan;
                 }
-
                 // if exists table is applying visible log, we wait 10 ms to retry
                 if (olapTables.stream().anyMatch(t -> t.lastVersionUpdateStartTime.get() > t.lastVersionUpdateEndTime.get())) {
                     try (Timer timer = Tracers.watchScope("PlanRetrySleepTime")) {
@@ -319,6 +319,8 @@ public class StatementPlanner {
                     }
                 }
 
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
         }
         Preconditions.checkState(false, "The tablet write operation update metadata " +
