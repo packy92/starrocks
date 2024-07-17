@@ -300,6 +300,11 @@ public final class ColumnPlus {
         return unpacker;
     }
 
+    public static Object getUnpackValues(Type colType, ByteBuffer buffer) {
+        return TYPE_TO_UNPACK_MAP.get(colType).apply(buffer);
+    }
+
+
     public BiFunction<DataOutput, Object, Void> getPacker() {
         if (packer == null) {
             packer = Objects.requireNonNull(TYPE_TO_PACK_MAP.get(TypePlus.of(column.getType()).getDecayedType()));

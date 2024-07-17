@@ -14,6 +14,7 @@
 
 package com.starrocks.sql.util;
 
+import com.starrocks.catalog.Type;
 import com.starrocks.common.Pair;
 import com.starrocks.common.Status;
 import com.starrocks.common.util.DebugUtil;
@@ -23,18 +24,25 @@ import com.starrocks.qe.StmtExecutor;
 import com.starrocks.sql.StatementPlanner;
 import com.starrocks.sql.analyzer.SemanticException;
 import com.starrocks.sql.ast.StatementBase;
+import com.starrocks.sql.optimizer.OptExpression;
+import com.starrocks.sql.optimizer.base.ColumnRefFactory;
+import com.starrocks.sql.optimizer.operator.scalar.ColumnRefOperator;
 import com.starrocks.sql.parser.SqlParser;
 import com.starrocks.sql.plan.ExecPlan;
+import com.starrocks.sql.plan.PlanFragmentBuilder;
 import com.starrocks.thrift.TResultBatch;
 import com.starrocks.thrift.TResultSinkType;
 import com.starrocks.thrift.TRowFormat;
+import org.apache.hadoop.util.Lists;
 import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.transport.TTransportException;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -77,6 +85,22 @@ public class CustomizedQueryExecutor {
                 .collect(Collectors.toList());
     }
 
+    private List<List<Object>> convertToJavaValue(List<TResultBatch> sqlResult, List<Type> colTypes) {
+        return deserialize(sqlResult).stream().map(row -> {
+            List<Object> values = Lists.newArrayList();
+            ByteBuffer packedData = row.packed_data.order(ByteOrder.LITTLE_ENDIAN);
+            for (Type colType : colTypes) {
+                byte nullBit = row.null_bits.get();
+                if (nullBit == 0) {
+                    values.add(null);
+                } else {
+                    values.add(ColumnPlus.getUnpackValues(colType, packedData));
+                }
+            }
+            return values;
+        }).collect(Collectors.toList());
+    }
+
     public List<TRowFormat> query(ConnectContext context, String sql) {
         return deserialize(executeDQL(context, sql));
     }
@@ -84,5 +108,30 @@ public class CustomizedQueryExecutor {
     public <T> List<T> query(Class<T> klass, List<ColumnPlus> columns, ConnectContext context, String sql) {
         Function<TRowFormat, T> unpacker = row -> ColumnPlus.unpack(klass, columns, row);
         return query(context, sql).stream().map(unpacker).collect(Collectors.toList());
+    }
+
+
+    public List<List<Object>> querySubPlan(OptExpression subOpt, List<ColumnRefOperator> outputColumns,
+                                                     ConnectContext connectContext,
+                                                     ColumnRefFactory columnRefFactory) {
+        ConnectContext tempContext = new ConnectContext();
+        final UUID uuid = UUIDUtil.genUUID();
+        tempContext.setQueryId(uuid);
+        tempContext.setExecutionId(UUIDUtil.toTUniqueId(uuid));
+        tempContext.setSessionVariable(connectContext.getSessionVariable());
+        ExecPlan subPlan = PlanFragmentBuilder.createPhysicalPlan(subOpt, tempContext, outputColumns, columnRefFactory,
+                outputColumns.stream().map(ColumnRefOperator::getName).collect(Collectors.toList()),
+                TResultSinkType.CUSTOMIZED, true);
+        String sql = "/* MOCK SQL */ SELECT * FROM SUB_PLAN_" + uuid;
+        StatementBase parsedStmt = SqlParser.parseOneWithStarRocksDialect(sql, tempContext.getSessionVariable());
+        StmtExecutor executor = new StmtExecutor(tempContext, parsedStmt);
+        Pair<List<TResultBatch>, Status> sqlResult = executor.executeStmtWithExecPlan(tempContext, subPlan);
+        if (!sqlResult.second.ok()) {
+            throw new SemanticException("Execute query fail | Error Message [%s] | QueryId [%s] | SQL [%s]",
+                    tempContext.getState().getErrorMessage(), DebugUtil.printId(tempContext.getQueryId()), sql);
+        } else {
+            List<Type> colTypes = outputColumns.stream().map(ColumnRefOperator::getType).collect(Collectors.toList());
+            return convertToJavaValue(sqlResult.first, colTypes);
+        }
     }
 }
